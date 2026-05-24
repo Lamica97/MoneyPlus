@@ -128,11 +128,26 @@
                         <h3 id="kpi-count" class="text-3xl font-bold text-white mt-2">0 รายการ</h3>
                     </div>
                 </div>
+
                 <div class="glass-card p-6 rounded-2xl">
                     <h4 class="text-sm font-semibold text-white mb-5 flex items-center gap-2">
-                        <span class="w-1.5 h-3.5 bg-[#03DAC6] rounded-full"></span> สัดส่วนรายรับแยกตามกลุ่มเรียนประจำเดือน
+                        <span class="w-1.5 h-3.5 bg-[#03DAC6] rounded-full"></span> 📈 แผนภูมิสรุปสัดส่วนยอดเงิน จ่ายแล้ว VS ค้างจ่าย แยกตามปีทั้งหมด
                     </h4>
-                    <div id="group-bars" class="space-y-5"></div>
+                    <div id="year-bars" class="space-y-4"></div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl">
+                    <h4 class="text-sm font-semibold text-white mb-5 flex items-center gap-2">
+                        <span class="w-1.5 h-3.5 bg-[#03DAC6] rounded-full"></span> 📅 แผนภูมิสรุปสัดส่วนยอดเงิน จ่ายแล้ว VS ค้างจ่าย แยกตามเดือนประจำปี
+                    </h4>
+                    <div id="month-bars" class="space-y-4"></div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl">
+                    <h4 class="text-sm font-semibold text-white mb-5 flex items-center gap-2">
+                        <span class="w-1.5 h-3.5 bg-[#03DAC6] rounded-full"></span> 📚 แผนภูมิสรุปสัดส่วนยอดเงิน จ่ายแล้ว VS ค้างจ่าย แยกตามกลุ่มเรียน
+                    </h4>
+                    <div id="group-bars" class="space-y-6"></div>
                 </div>
             </section>
 
@@ -220,8 +235,7 @@
                         </div>
                         <label class="text-xs font-semibold text-gray-400 block mb-2">กลุ่มเรียนที่มีอยู่ในระบบขณะนี้:</label>
                     </div>
-                    <div class="flex-1 overflow-y-auto max-h-60 bg-white/5 rounded-xl border border-white/5 p-2" id="settings-group-list">
-                        </div>
+                    <div class="flex-1 overflow-y-auto max-h-60 bg-white/5 rounded-xl border border-white/5 p-2" id="settings-group-list"></div>
                 </div>
 
                 <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
@@ -269,14 +283,12 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
-        // References ของฐานข้อมูลบนคลาวด์
         const recordsRef = ref(db, 'money_plus_records');
         const mappingRef = ref(db, 'money_plus_settings/studentMapping');
 
         let rawDataset = {};
         window.studentMapping = {}; 
 
-        // ซิงค์ชุดตั้งค่ากลุ่มนักเรียนเริ่มต้นเข้าคลาวด์
         onValue(mappingRef, (snapshot) => {
             const data = snapshot.val();
             if (!data) {
@@ -297,13 +309,12 @@
             window.updateFormGroupDropdown();
         });
 
-        // ซิงค์รายรับบัญชี
         onValue(recordsRef, (snapshot) => {
             rawDataset = snapshot.val() || {};
             window.processData();
         });
 
-        // ฟังก์ชันประมวลผลดึงข้อมูล (อัปเกรดสูงสุด: รองรับทั้งคีย์ตัวเลข 0-6 และคีย์ตัวอักษร Case-insensitive)
+        // 📊 ฟังก์ชันหลักประมวลผลคำนวณและแสดงผลแผนภูมิแท่งคู่แยกตาม (ปี, เดือน และกลุ่มเรียน)
         window.processData = function() {
             const activeYear = document.getElementById('global-year').value;
             const activeMonth = document.getElementById('global-month').value;
@@ -311,33 +322,38 @@
             const tableStatus = document.getElementById('table-status-filter').value;
 
             let paidTotal = 0, pendingTotal = 0, count = 0;
-            let groupStats = {};
+            
+            // โครงสร้างสะสมสถิติ
+            let groupStats = {}; 
+            let yearStats = { "2025": { paid: 0, pending: 0 }, "2026": { paid: 0, pending: 0 } };
+            
+            const monthsOrder = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+            let monthStats = {};
+            monthsOrder.forEach(m => { monthStats[m] = { paid: 0, pending: 0 }; });
+
             const tbody = document.getElementById('table-rows');
             if (tbody) tbody.innerHTML = '';
 
-            // แปลงโครงสร้างข้อมูลจาก Firebase
             let items = [];
             if (Array.isArray(rawDataset)) {
                 items = rawDataset.filter(item => item !== null).map((item, index) => ({ _key: `csv_${index}`, ...item }));
             } else {
                 items = Object.keys(rawDataset).map(key => ({ _key: key, ...rawDataset[key] }));
             }
-            items.reverse(); // เรียงจากใหม่ไปเก่า
+            items.reverse(); 
 
             items.forEach(item => {
                 let itemDate = '', itemYear = '', itemMonth = '', itemGroup = '', itemName = '', itemStatus = '', itemAmount = 0;
 
-                // ตรวจสอบโครงสร้าง: ถ้าเป็นรูปแบบแถวตัวเลขดัชนี 0 ถึง 6 (ข้อมูลเก่าที่เพิ่งอัปขึ้น)
                 if (item[0] !== undefined && item[1] !== undefined && item[2] !== undefined) {
-                    itemDate = String(item[0] || '').trim();
-                    itemYear = String(item[1] || '').trim();
-                    itemMonth = String(item[2] || '').trim();
-                    itemGroup = String(item[3] || '').trim();
+                    itemAmount = parseInt(item[0]) || 0;
+                    itemDate = String(item[1] || '').trim();
+                    itemGroup = String(item[2] || '').trim();
+                    itemMonth = String(item[3] || '').trim();
                     itemName = String(item[4] || '').trim();
-                    itemAmount = parseInt(item[5]) || 0;
-                    itemStatus = String(item[6] || '').trim();
+                    itemStatus = String(item[5] || '').trim();
+                    itemYear = String(item[6] || '').trim();
                 } else {
-                    // ถ้าเป็นรูปแบบคีย์ตัวอักษรปกติ (ข้อมูลใหม่ หรือก้อนแก้ไขแล้ว)
                     itemYear = String(item.year || item.Year || '').trim();
                     itemMonth = String(item.month || item.Month || '').trim();
                     itemDate = String(item.date || item.Date || '').trim();
@@ -348,7 +364,21 @@
                     itemAmount = parseInt(rawAmount) || 0;
                 }
 
-                // สกัดกรองเงื่อนไขตามตัวเลือกปีและเดือนหน้าแดชบอร์ด
+                // สถิติสะสมรายปีหลัก (สะสมทุกอย่างไม่โดนฟิลเตอร์สกัดกั้น)
+                if (yearStats[itemYear]) {
+                    if (itemStatus === "จ่ายแล้ว") yearStats[itemYear].paid += itemAmount;
+                    else if (itemStatus === "ค้างจ่าย") yearStats[itemYear].pending += itemAmount;
+                }
+
+                // สถิติสะสมรายเดือน (จะยึดตามปีหลักที่กดยกขึ้นฟิลเตอร์เสมอ)
+                if (itemYear === activeYear) {
+                    if (monthStats[itemMonth]) {
+                        if (itemStatus === "จ่ายแล้ว") monthStats[itemMonth].paid += itemAmount;
+                        else if (itemStatus === "ค้างจ่าย") monthStats[itemMonth].pending += itemAmount;
+                    }
+                }
+
+                // ส่วนคำนวณของตารางสถิติด้านล่างและ KPI
                 const matchYear = itemYear === activeYear;
                 const matchMonth = activeMonth === "ทั้งหมด" || itemMonth === activeMonth;
                 
@@ -358,8 +388,12 @@
                     else if (itemStatus === "ค้างจ่าย") pendingTotal += itemAmount;
 
                     const displayGroup = itemGroup ? itemGroup.replace(/_/g, ' ') : 'ไม่ระบุกลุ่ม';
-                    if (!groupStats[displayGroup]) groupStats[displayGroup] = 0;
-                    if (itemStatus === "จ่ายแล้ว") groupStats[displayGroup] += itemAmount;
+                    if (!groupStats[displayGroup]) {
+                        groupStats[displayGroup] = { paid: 0, pending: 0 };
+                    }
+                    
+                    if (itemStatus === "จ่ายแล้ว") groupStats[displayGroup].paid += itemAmount;
+                    else if (itemStatus === "ค้างจ่าย") groupStats[displayGroup].pending += itemAmount;
 
                     const matchSearch = itemName.toLowerCase().includes(tableSearch) || displayGroup.toLowerCase().includes(tableSearch);
                     const matchStatus = tableStatus === "ทั้งหมด" || itemStatus === tableStatus;
@@ -384,30 +418,132 @@
                 }
             });
 
+            // อัปเดตกล่องรวมตัวเลขด้านบนสุด (KPI)
             document.getElementById('kpi-paid').innerText = `฿${paidTotal.toLocaleString()}`;
             document.getElementById('kpi-pending').innerText = `฿${pendingTotal.toLocaleString()}`;
             document.getElementById('kpi-count').innerText = `${count} รายการ`;
 
+            // 📊 1. เรนเดอร์แผนภูมิสรุปยอดเงิน จ่ายแล้ว VS ค้างจ่าย แยกตามปี (Yearly Bars)
+            const yearBarsContainer = document.getElementById('year-bars');
+            yearBarsContainer.innerHTML = '';
+            
+            let maxYearVal = 1;
+            Object.keys(yearStats).forEach(y => {
+                const totalY = yearStats[y].paid + yearStats[y].pending;
+                if (totalY > maxYearVal) maxYearVal = totalY;
+            });
+
+            Object.keys(yearStats).forEach(y => {
+                const paidAmt = yearStats[y].paid;
+                const pendingAmt = yearStats[y].pending;
+                const paidPct = (paidAmt / maxYearVal) * 100;
+                const pendingPct = (pendingAmt / maxYearVal) * 100;
+
+                yearBarsContainer.innerHTML += `
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 bg-white/2 border border-white/5 p-3.5 rounded-xl hover:bg-white/4 transition-all">
+                        <div class="sm:w-28 text-xs font-bold text-white flex items-center gap-1.5">🏢 สรุปภาพรวมปี ${y}</div>
+                        <div class="flex-1 space-y-1.5">
+                            <div class="w-full bg-white/5 h-2.5 rounded-full overflow-hidden flex border border-white/5">
+                                <div class="bg-gradient-to-r from-[#03DAC6] to-[#01bda6] h-full" style="width: ${paidPct}%"></div>
+                                <div class="bg-gradient-to-r from-[#FF7597] to-[#ff4a76] h-full" style="width: ${pendingPct}%"></div>
+                            </div>
+                            <div class="flex justify-between text-[11px] text-gray-300 font-mono">
+                                <span>🟢 จ่ายแล้วทั้งปี: <b class="text-[#03DAC6] font-bold">฿${paidAmt.toLocaleString()}</b></span>
+                                <span>🔴 ค้างรวมทั้งปี: <b class="text-[#FF7597] font-bold">฿${pendingAmt.toLocaleString()}</b></span>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+
+            // 📊 2. เรนเดอร์แผนภูมิสรุปยอดเงิน จ่ายแล้ว VS ค้างจ่าย แยกตามเดือนประจำปี (Monthly Bars)
+            const monthBarsContainer = document.getElementById('month-bars');
+            monthBarsContainer.innerHTML = '';
+            
+            let maxMonthVal = 1;
+            monthsOrder.forEach(m => {
+                const totalM = monthStats[m].paid + monthStats[m].pending;
+                if (totalM > maxMonthVal) maxMonthVal = totalM;
+            });
+
+            let hasMonthData = false;
+            monthsOrder.forEach(m => {
+                const paidAmt = monthStats[m].paid;
+                const pendingAmt = monthStats[m].pending;
+                if (paidAmt > 0 || pendingAmt > 0) {
+                    hasMonthData = true;
+                    const paidPct = (paidAmt / maxMonthVal) * 100;
+                    const pendingPct = (pendingAmt / maxMonthVal) * 100;
+
+                    monthBarsContainer.innerHTML += `
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 bg-white/1 border border-white/5 p-3 rounded-xl hover:bg-white/3 transition-all">
+                            <div class="sm:w-28 text-xs font-semibold text-gray-300">📅 เดือน ${m} (${activeYear})</div>
+                            <div class="flex-1 space-y-1.5">
+                                <div class="w-full bg-white/5 h-2 rounded-full overflow-hidden flex">
+                                    <div class="bg-gradient-to-r from-[#03DAC6] to-[#01bda6] h-full" style="width: ${paidPct}%"></div>
+                                    <div class="bg-gradient-to-r from-[#FF7597] to-[#ff4a76] h-full" style="width: ${pendingPct}%"></div>
+                                </div>
+                                <div class="flex justify-between text-[10px] text-gray-400 font-mono">
+                                    <span>จ่ายแล้ว: <b class="text-[#03DAC6]">฿${paidAmt.toLocaleString()}</b></span>
+                                    <span>ค้างชำระ: <b class="text-[#FF7597]">฿${pendingAmt.toLocaleString()}</b></span>
+                                </div>
+                            </div>
+                        </div>`;
+                }
+            });
+            if (!hasMonthData) {
+                monthBarsContainer.innerHTML = `<p class="text-sm text-gray-500 text-center py-4">ไม่มีข้อมูลสถิติรายเดือนของปี ${activeYear}</p>`;
+            }
+
+            // 📊 3. เรนเดอร์แผนภูมิสรุปยอดเงิน จ่ายแล้ว VS ค้างจ่าย แยกตามกลุ่มเรียน (Group Bars)
             const groupBarsContainer = document.getElementById('group-bars');
             groupBarsContainer.innerHTML = '';
             const groupKeys = Object.keys(groupStats);
+            
             if (groupKeys.length === 0) {
                 groupBarsContainer.innerHTML = `<p class="text-sm text-gray-500 text-center py-4">ไม่มีสถิติรายรับของช่วงเวลาที่เลือก</p>`;
             } else {
+                let maxGroupVal = 1;
                 groupKeys.forEach(grp => {
-                    const amt = groupStats[grp];
-                    const maxAmt = Math.max(...Object.values(groupStats), 1);
-                    const percentage = (amt / maxAmt) * 100;
+                    const totalGroupAmount = groupStats[grp].paid + groupStats[grp].pending;
+                    if (totalGroupAmount > maxGroupVal) maxGroupVal = totalGroupAmount;
+                });
+
+                groupKeys.forEach(grp => {
+                    const paidAmt = groupStats[grp].paid;
+                    const pendingAmt = groupStats[grp].pending;
+                    const paidPercentage = (paidAmt / maxGroupVal) * 100;
+                    const pendingPercentage = (pendingAmt / maxGroupVal) * 100;
+
                     groupBarsContainer.innerHTML += `
-                        <div class="space-y-1.5">
-                            <div class="flex justify-between text-xs font-medium"><span class="text-gray-300">${grp}</span><span class="text-[#03DAC6] font-bold">฿${amt.toLocaleString()}</span></div>
-                            <div class="w-full bg-white/5 h-2.5 rounded-full overflow-hidden border border-white/5"><div class="bg-gradient-to-r from-[#03DAC6] to-[#01bda6] h-full rounded-full shadow-[0_0_8px_rgba(3,218,198,0.5)]" style="width: ${percentage}%"></div></div>
+                        <div class="bg-white/2 border border-white/5 p-4 rounded-xl space-y-3 hover:bg-white/5 transition-all">
+                            <div class="text-xs font-bold text-white flex items-center gap-2">
+                                <span class="inline-block w-1.5 h-1.5 bg-[#03DAC6] rounded-full"></span> 📚 กลุ่มเรียน: ${grp}
+                            </div>
+                            <div class="space-y-2">
+                                <div class="space-y-1">
+                                    <div class="flex justify-between text-[11px] font-medium">
+                                        <span class="text-gray-400">🟢 จ่ายแล้ว</span>
+                                        <span class="text-[#03DAC6] font-bold">฿${paidAmt.toLocaleString()}</span>
+                                    </div>
+                                    <div class="w-full bg-white/5 h-2 rounded-full overflow-hidden border border-white/5">
+                                        <div class="bg-gradient-to-r from-[#03DAC6] to-[#01bda6] h-full rounded-full shadow-[0_0_8px_rgba(3,218,198,0.3)] transition-all" style="width: ${paidPercentage}%"></div>
+                                    </div>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="flex justify-between text-[11px] font-medium">
+                                        <span class="text-gray-400">🔴 ค้างชำระ</span>
+                                        <span class="text-[#FF7597] font-bold">฿${pendingAmt.toLocaleString()}</span>
+                                    </div>
+                                    <div class="w-full bg-white/5 h-2 rounded-full overflow-hidden border border-white/5">
+                                        <div class="bg-gradient-to-r from-[#FF7597] to-[#ff4a76] h-full rounded-full shadow-[0_0_8px_rgba(255,117,151,0.3)] transition-all" style="width: ${pendingPercentage}%"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>`;
                 });
             }
         };
 
-        // วาดส่วนจัดการหน้าหลังบ้าน Settings
         window.renderSettingsUI = function() {
             const groupListDiv = document.getElementById('settings-group-list');
             const groupSelect = document.getElementById('settings-group-select');
@@ -432,7 +568,6 @@
             }
         };
 
-        // อัปเดตดรอปดาวน์ในหน้าฟอร์มกรอกบันทึกใหม่ (Tab 3)
         window.updateFormGroupDropdown = function() {
             const formGroupSelect = document.getElementById('form-group');
             formGroupSelect.innerHTML = '<option value="">-- เลือกกลุ่มเรียน --</option>';
@@ -442,7 +577,6 @@
             window.updateStudentNameDropdown();
         };
 
-        // จัดการเพิ่มกลุ่มเรียนใหม่ขึ้น Firebase
         window.handleAddGroup = function() {
             const groupInput = document.getElementById('settings-group-input');
             const newGroupName = groupInput.value.trim();
@@ -458,7 +592,6 @@
                 });
         };
 
-        // จัดการลบกลุ่มเรียนออกจากระบบคลาวด์
         window.handleDeleteGroup = function(groupKey) {
             const display = groupKey.replace(/_/g, ' ');
             if (confirm(`⚠️ คำเตือนร้ายแรง: คุณต้องการลบกลุ่มเรียน "${display}" พร้อมข้อมูลรายชื่อนักเรียนข้างในทั้งหมดใช่หรือไม่?\n(ประวัติการเก็บเงินในตารางจะไม่หายไป)`)) {
@@ -467,7 +600,6 @@
             }
         };
 
-        // โหลดรายชื่อนักเรียนมาแสดงผลในตารางฝั่งจัดการหน้าหลังบ้าน
         window.loadSettingsStudentList = function() {
             const selectedGroup = document.getElementById('settings-group-select').value;
             const studentListDiv = document.getElementById('settings-student-list');
@@ -488,7 +620,6 @@
             });
         };
 
-        // สั่งเพิ่มรายชื่อนักเรียนเข้าสู่กิ่งแถวในกลุ่มเรียนบน Firebase
         window.handleAddStudent = function() {
             const selectedGroup = document.getElementById('settings-group-select').value;
             const studentInput = document.getElementById('settings-student-input');
@@ -510,7 +641,6 @@
                 });
         };
 
-        // ลบชื่อนักเรียนเดี่ยว
         window.handleDeleteStudent = function(index) {
             const selectedGroup = document.getElementById('settings-group-select').value;
             let currentList = [...window.studentMapping[selectedGroup]];
@@ -524,7 +654,6 @@
             }
         };
 
-        // สั่งลบแถวประวัติค่าเรียน
         window.deleteRecord = function(recordKey, studentName) {
             if (confirm(`คุณต้องการลบข้อมูลรายรับเรียนของ "${studentName}" ใช่หรือไม่?\n(ข้อมูลจะถูกนำออกทันที)`)) {
                 remove(ref(db, `money_plus_records/${recordKey}`))
@@ -532,7 +661,6 @@
             }
         };
 
-        // บันทึกฟอร์มค่าเรียน
         window.handleFormSubmit = function(event) {
             event.preventDefault();
             const rawDate = document.getElementById('form-date').value;
