@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Money Plus+ Dashboard (Firebase Glassmorphism)</title>
+    <title>Money Plus+ Dashboard (Fully Managed Glassmorphism)</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +19,6 @@
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(3, 218, 198, 0.3); }
         
-        /* Glassmorphism Utility Base Style */
         .glass-panel {
             background: rgba(30, 30, 30, 0.65);
             backdrop-filter: blur(12px);
@@ -43,6 +42,10 @@
             border-color: #03DAC6;
             box-shadow: 0 0 10px rgba(3, 218, 198, 0.2);
         }
+        select.glass-input option {
+            background-color: #1E1E1E !important;
+            color: #FFFFFF !important;
+        }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden">
@@ -63,6 +66,9 @@
                 <a href="#" onclick="switchTab('form')" id="nav-form" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white border border-transparent hover:border-white/5 transition-all">
                     <span class="text-lg">➕</span> บันทึกค่าเรียนใหม่
                 </a>
+                <a href="#" onclick="switchTab('settings')" id="nav-settings" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white border border-transparent hover:border-white/5 transition-all">
+                    <span class="text-lg">⚙️</span> ตั้งค่ากลุ่มและนักเรียน
+                </a>
             </nav>
         </div>
         <div class="p-6 border-t border-white/5">
@@ -79,7 +85,7 @@
                 <h2 id="page-title" class="text-xl font-bold text-white tracking-wide">แดชบอร์ดภาพรวม</h2>
                 <p class="text-xs text-gray-400 mt-0.5">ระบบบริการจัดการรายรับผ่านคลาวด์จากทุกอุปกรณ์</p>
             </div>
-            <div class="flex flex-wrap items-center gap-3">
+            <div class="flex flex-wrap items-center gap-3" id="header-filters">
                 <select id="global-year" onchange="processData()" class="glass-input text-white px-3 py-1.5 rounded-xl text-sm focus:outline-none cursor-pointer">
                     <option value="2026" selected>ปี 2026</option>
                     <option value="2025">ปี 2025</option>
@@ -167,31 +173,25 @@
                 <form id="student-form" onsubmit="handleFormSubmit(event)" class="space-y-4.5">
                     <div class="grid grid-cols-2 gap-4">
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-xs font-semibold text-gray-400">วันที่เรียน</label>
+                            <label class="text-xs font-semibold text-gray-300">วันที่เรียน</label>
                             <input type="date" id="form-date" required class="glass-input rounded-xl p-2.5 text-sm text-white focus:outline-none cursor-pointer">
                         </div>
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-xs font-semibold text-gray-400">กลุ่มเรียน</label>
-                            <select id="form-group" onchange="updateStudentNameDropdown()" required class="glass-input rounded-xl p-2.5 text-sm text-white focus:outline-none cursor-pointer">
-                                <option value="">-- เลือกกลุ่มเรียน --</option>
-                                <option value="ม.4 จันทร์">ม.4 จันทร์</option>
-                                <option value="ม.4 ศุกร์">ม.4 ศุกร์</option>
-                                <option value="ม.5 ศุกร์">ม.5 ศุกร์</option>
-                                <option value="ม.3 พฤหัสบดี">ม.3 พฤหัสบดี</option>
-                                <option value="ปิดเทอม">ปิดเทอม</option>
-                                <option value="อื่น ๆ">อื่น ๆ</option>
+                            <label class="text-xs font-semibold text-gray-300">กลุ่มเรียน</label>
+                            <select id="form-group" onchange="updateStudentNameDropdown()" required class="glass-input rounded-xl p-2.5 text-sm text-white focus:outline-none cursor-pointer font-medium">
+                                <option value="" class="text-gray-400">-- โหลดกลุ่มเรียน... --</option>
                             </select>
                         </div>
                     </div>
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-xs font-semibold text-gray-400">ชื่อนักเรียน</label>
-                        <select id="form-name" required class="glass-input rounded-xl p-2.5 text-sm text-white focus:outline-none cursor-pointer">
-                            <option value="">-- กรุณาเลือกกลุ่มเรียนก่อน --</option>
+                        <label class="text-xs font-semibold text-gray-300">ชื่อนักเรียน</label>
+                        <select id="form-name" required class="glass-input rounded-xl p-2.5 text-sm text-white focus:outline-none cursor-pointer font-medium">
+                            <option value="" class="text-gray-400">-- กรุณาเลือกกลุ่มเรียนก่อน --</option>
                         </select>
                     </div>
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-xs font-semibold text-gray-400">จำนวนค่าเรียน (บาท)</label>
-                        <input type="number" id="form-amount" required placeholder="กรอกจำนวนเงิน" class="glass-input rounded-xl p-2.5 text-sm text-white focus:outline-none">
+                        <label class="text-xs font-semibold text-gray-300">จำนวนค่าเรียน (บาท)</label>
+                        <input type="number" id="form-amount" required placeholder="กรอกจำนวนเงิน" class="glass-input rounded-xl p-2.5 text-sm text-white focus:outline-none font-medium">
                         <div class="flex gap-2 mt-1">
                             <button type="button" onclick="setQuickAmount(200)" class="bg-white/5 hover:bg-white/10 px-3 py-1 rounded-lg text-xs font-medium border border-white/5 cursor-pointer transition-all">฿200</button>
                             <button type="button" onclick="setQuickAmount(250)" class="bg-white/5 hover:bg-white/10 px-3 py-1 rounded-lg text-xs font-medium border border-white/5 cursor-pointer transition-all">฿250</button>
@@ -199,24 +199,63 @@
                         </div>
                     </div>
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-xs font-semibold text-gray-400">สถานะชำระเงิน</label>
+                        <label class="text-xs font-semibold text-gray-300">สถานะชำระเงิน</label>
                         <div class="flex gap-5 mt-1">
-                            <label class="flex items-center gap-2 cursor-pointer text-sm select-none font-medium text-[#03DAC6]"><input type="radio" name="form-status" value="จ่ายแล้ว" checked class="accent-[#03DAC6] w-4 h-4"> จ่ายแล้ว</label>
-                            <label class="flex items-center gap-2 cursor-pointer text-sm select-none font-medium text-[#FF7597]"><input type="radio" name="form-status" value="ค้างจ่าย" class="accent-[#FF7597] w-4 h-4"> ค้างจ่าย</label>
+                            <label class="flex items-center gap-2 cursor-pointer text-sm select-none font-bold text-[#03DAC6]"><input type="radio" name="form-status" value="จ่ายแล้ว" checked class="accent-[#03DAC6] w-4 h-4"> จ่ายแล้ว</label>
+                            <label class="flex items-center gap-2 cursor-pointer text-sm select-none font-bold text-[#FF7597]"><input type="radio" name="form-status" value="ค้างจ่าย" class="accent-[#FF7597] w-4 h-4"> ค้างจ่าย</label>
                         </div>
                     </div>
                     <button type="submit" class="w-full bg-gradient-to-r from-[#03DAC6] to-[#01bda6] hover:brightness-110 text-[#121212] font-bold p-3 rounded-xl mt-4 cursor-pointer transition-all shadow-[0_4px_15px_rgba(3,218,198,0.2)]">💾 ส่งข้อมูลเข้าคลาวด์ Firebase</button>
                 </form>
             </section>
+
+            <section id="section-settings" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-md font-bold text-white mb-1">🗂️ จัดการกลุ่มเรียนทั้งหมด</h3>
+                        <p class="text-xs text-gray-400 mb-4">เพิ่มหรือลบชื่อห้องเรียนและกลุ่มเวลาเรียนได้ที่นี่</p>
+                        
+                        <div class="flex gap-2 mb-4">
+                            <input type="text" id="settings-group-input" placeholder="ตัวอย่าง: ม.4 ศุกร์ หรือ ม.6 เสาร์" class="flex-1 glass-input text-white px-3 py-2 rounded-xl text-sm focus:outline-none">
+                            <button onclick="handleAddGroup()" class="bg-[#03DAC6] hover:bg-[#01bda6] text-[#121212] text-xs font-bold px-4 rounded-xl cursor-pointer transition-all">➕ เพิ่มกลุ่ม</button>
+                        </div>
+                        <label class="text-xs font-semibold text-gray-400 block mb-2">กลุ่มเรียนที่มีอยู่ในระบบขณะนี้:</label>
+                    </div>
+                    <div class="flex-1 overflow-y-auto max-h-60 bg-white/5 rounded-xl border border-white/5 p-2" id="settings-group-list">
+                        </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-md font-bold text-white mb-1">🧑‍🏫 จัดการรายชื่อนักเรียน</h3>
+                        <p class="text-xs text-gray-400 mb-4">เลือกกลุ่มก่อนเพื่อเพิ่มหรือถอดถอนชื่อนักเรียนออกจากกลุ่มเรียน</p>
+                        
+                        <div class="mb-4">
+                            <label class="text-xs font-semibold text-gray-400 block mb-1">ขั้นตอนที่ 1: เลือกกลุ่มเรียนที่ต้องการจัดการ</label>
+                            <select id="settings-group-select" onchange="loadSettingsStudentList()" class="w-full glass-input text-white p-2.5 rounded-xl text-sm focus:outline-none cursor-pointer font-medium">
+                                <option value="">-- เลือกกลุ่มเรียน --</option>
+                            </select>
+                        </div>
+                        
+                        <label class="text-xs font-semibold text-gray-400 block mb-1">ขั้นตอนที่ 2: เพิ่มรายชื่อสมาชิกใหม่ในกลุ่มนี้</label>
+                        <div class="flex gap-2 mb-4">
+                            <input type="text" id="settings-student-input" placeholder="พิมพ์ชื่อเล่น เช่น ม.4 นนท์" class="flex-1 glass-input text-white px-3 py-2 rounded-xl text-sm focus:outline-none">
+                            <button onclick="handleAddStudent()" class="bg-[#03DAC6] hover:bg-[#01bda6] text-[#121212] text-xs font-bold px-4 rounded-xl cursor-pointer transition-all">➕ เพิ่มชื่อ</button>
+                        </div>
+                        <label class="text-xs font-semibold text-gray-400 block mb-2">รายชื่อนักเรียนในกลุ่มนี้:</label>
+                    </div>
+                    <div class="flex-1 overflow-y-auto max-h-48 bg-white/5 rounded-xl border border-white/5 p-2" id="settings-student-list">
+                        <p class="text-xs text-gray-500 text-center py-6">กรุณาเลือกกลุ่มเรียนด้านบนก่อน</p>
+                    </div>
+                </div>
+            </section>
         </div>
     </main>
 
     <script type="module">
-        // นำเข้าโมดูล Firebase จาก CDN เว็บอย่างเป็นทางการ
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, push, onValue, remove, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // คอนฟิกูเรชัน Firebase ของโปรเจกต์ Money Plus+
         const firebaseConfig = {
             apiKey: "AIzaSyCo1DAVwIjiHlyvf0nDVI1s0e7vxInGdlE",
             authDomain: "moneyplus-68eba.firebaseapp.com",
@@ -228,20 +267,45 @@
             measurementId: "G-4NRW3GHG6X"
         };
 
-        // เริ่มต้นการทำงานของ Firebase ระบบฐานข้อมูลฐานหลัก
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        
+        // References ของฐานข้อมูลบนคลาวด์
         const recordsRef = ref(db, 'money_plus_records');
+        const mappingRef = ref(db, 'money_plus_settings/studentMapping');
 
         let rawDataset = {};
+        window.studentMapping = {}; // เปลี่ยนเป็นโกลบอลเพื่อดึงใช้งานข้ามฟังก์ชัน
 
-        // ลิสเนอร์ซิงค์ข้อมูลอัตโนมัติเมื่อเกิดการเปลี่ยนแปลง
+        // ซิงค์ชุดตั้งค่ากลุ่มนักเรียนเริ่มต้นเข้าคลาวด์ (กรณีเป็นก้อนเปล่า)
+        onValue(mappingRef, (snapshot) => {
+            const data = snapshot.val();
+            if (!data) {
+                // อพยพโครงสร้างข้อมูลเดิมของคุณขึ้น Firebase ครั้งแรก
+                const defaultMapping = {
+                    "ม_4 จันทร์": ["ม.4 เพลง", "ม.4 ปลื้ม", "ม.4 ภีม"],
+                    "ม_4 ศุกร์": ["ม.4 กัปตัน", "ม.4 อัย", "ม.4 ปัณ"],
+                    "ม_5 ศุกร์": ["ม.5 ปัณ", "ม.5 อัย", "ม.5 กัปตัน"],
+                    "ม_3 พฤหัสบดี": ["ม.3 พี", "ม.3 อิ้ง", "ม.3 ออกัส"],
+                    "ปิดเทอม": ["ม.3 อิ้ง", "ม.4 เจมส์"],
+                    "อื่น ๆ": ["ม.5 ติวเตอร์", "ม.4 ทริกเกอร์"]
+                };
+                set(mappingRef, defaultMapping);
+                window.studentMapping = defaultMapping;
+            } else {
+                window.studentMapping = data;
+            }
+            window.renderSettingsUI();
+            window.updateFormGroupDropdown();
+        });
+
+        // ซิงค์รายรับบัญชี
         onValue(recordsRef, (snapshot) => {
             rawDataset = snapshot.val() || {};
             window.processData();
         });
 
-        // ฟังก์ชันประมวลผลข้อมูล วาดแดชบอร์ด และตาราง
+        // ฟังก์ชันประมวลผลวาดภาพรวมตารางข้อมูลและ Dashboard
         window.processData = function() {
             const activeYear = document.getElementById('global-year').value;
             const activeMonth = document.getElementById('global-month').value;
@@ -251,9 +315,8 @@
             let paidTotal = 0, pendingTotal = 0, count = 0;
             let groupStats = {};
             const tbody = document.getElementById('table-rows');
-            tbody.innerHTML = '';
+            if (tbody) tbody.innerHTML = '';
 
-            // เรียงลำดับคีย์ข้อมูลจากใหม่ลงไปเก่า
             const items = Object.keys(rawDataset).map(key => ({ _key: key, ...rawDataset[key] })).reverse();
 
             items.forEach(item => {
@@ -265,24 +328,25 @@
                     if (item.status === "จ่ายแล้ว") paidTotal += item.amount;
                     else if (item.status === "ค้างจ่าย") pendingTotal += item.amount;
 
-                    if (!groupStats[item.group]) groupStats[item.group] = 0;
-                    if (item.status === "จ่ายแล้ว") groupStats[item.group] += item.amount;
+                    const displayGroup = item.group.replace(/_/g, ' ');
+                    if (!groupStats[displayGroup]) groupStats[displayGroup] = 0;
+                    if (item.status === "จ่ายแล้ว") groupStats[displayGroup] += item.amount;
 
-                    const matchSearch = item.name.toLowerCase().includes(tableSearch) || item.group.toLowerCase().includes(tableSearch);
+                    const matchSearch = item.name.toLowerCase().includes(tableSearch) || displayGroup.toLowerCase().includes(tableSearch);
                     const matchStatus = tableStatus === "ทั้งหมด" || item.status === tableStatus;
 
-                    if (matchSearch && matchStatus) {
+                    if (tbody && matchSearch && matchStatus) {
                         const badgeClass = item.status === "จ่ายแล้ว" ? "bg-[#0D533A]/80 text-[#03DAC6] border border-[#03DAC6]/20" : "bg-[#5C1D24]/80 text-[#FF7597] border border-[#FF7597]/20";
                         tbody.innerHTML += `
                             <tr class="hover:bg-white/5 transition-colors">
-                                <td class="p-4 text-center text-gray-500 text-xs font-mono select-all" title="${item._key}">${item._key.substring(1, 6)}...</td>
+                                <td class="p-4 text-center text-gray-500 text-xs font-mono select-all">${item._key.substring(1, 6)}...</td>
                                 <td class="p-4 font-medium">${item.date}</td>
-                                <td class="p-4 text-gray-400 font-medium">${item.group}</td>
+                                <td class="p-4 text-gray-400 font-medium">${displayGroup}</td>
                                 <td class="p-4 font-semibold text-white">${item.name}</td>
                                 <td class="p-4 text-right font-bold text-white font-mono">฿${item.amount.toLocaleString()}</td>
                                 <td class="p-4 text-center"><span class="px-2.5 py-1 rounded-full text-xs font-bold shadow-sm ${badgeClass}">${item.status}</span></td>
                                 <td class="p-4 text-center">
-                                    <button onclick="deleteRecord('${item._key}', '${item.name}')" class="px-2.5 py-1 text-xs font-semibold bg-red-500/10 border border-red-500/20 text-[#FF7597] hover:bg-red-500 hover:text-white rounded-lg cursor-pointer transition-all" title="ลบรายการนี้">
+                                    <button onclick="deleteRecord('${item._key}', '${item.name}')" class="px-2.5 py-1 text-xs font-semibold bg-red-500/10 border border-red-500/20 text-[#FF7597] hover:bg-red-500 hover:text-white rounded-lg cursor-pointer transition-all">
                                         🗑️ ลบ
                                     </button>
                                 </td>
@@ -315,17 +379,137 @@
             }
         };
 
-        // ฟังก์ชันลบข้อมูลรายแถวออกจากระบบคลาวด์คอร์ปัส
-        window.deleteRecord = function(recordKey, studentName) {
-            if (confirm(`คุณต้องการลบข้อมูลรายรับเรียนของ "${studentName}" ใช่หรือไม่?\n(ข้อมูลบนหน้าจอเครื่องอื่นจะถูกนำออกทันที)`)) {
-                const itemRef = ref(db, `money_plus_records/${recordKey}`);
-                remove(itemRef)
-                    .then(() => alert("🗑️ ลบข้อมูลออกจากฐานข้อมูลเรียบร้อยแล้ว"))
-                    .catch((error) => alert("เกิดข้อผิดพลาดในการลบ: " + error.message));
+        // วาดส่วนจัดการหน้าหลังบ้าน Settings
+        window.renderSettingsUI = function() {
+            const groupListDiv = document.getElementById('settings-group-list');
+            const groupSelect = document.getElementById('settings-group-select');
+            const activeSelectVal = groupSelect.value;
+            
+            groupListDiv.innerHTML = '';
+            groupSelect.innerHTML = '<option value="">-- เลือกกลุ่มเรียน --</option>';
+
+            Object.keys(window.studentMapping).forEach(groupKey => {
+                const cleanName = groupKey.replace(/_/g, ' ');
+                // เติมลงในรายการควบคุมกลุ่ม
+                groupListDiv.innerHTML += `
+                    <div class="flex justify-between items-center bg-white/3 border border-white/5 p-2 rounded-xl mb-1.5 hover:bg-white/5 transition-all">
+                        <span class="text-sm font-medium text-white pl-1">📚 ${cleanName}</span>
+                        <button onclick="handleDeleteGroup('${groupKey}')" class="text-xs bg-red-500/10 border border-red-500/20 text-[#FF7597] hover:bg-red-500 hover:text-white px-2 py-1 rounded-lg transition-all cursor-pointer">🗑️ ลบทั้งกลุ่ม</button>
+                    </div>`;
+                // เติมลงในดรอปดาวน์สวิตช์รายชื่อนักเรียน
+                groupSelect.innerHTML += `<option value="${groupKey}">${cleanName}</option>`;
+            });
+
+            if(activeSelectVal && window.studentMapping[activeSelectVal]) {
+                groupSelect.value = activeSelectVal;
+                window.loadSettingsStudentList();
             }
         };
 
-        // ฟังก์ชันเมื่อกดบันทึกหน้าฟอร์มส่งข้อมูลขึ้น Firebase
+        // อัปเดตดรอปดาวน์ในหน้าฟอร์มกรอกบันทึกใหม่ (Tab 3)
+        window.updateFormGroupDropdown = function() {
+            const formGroupSelect = document.getElementById('form-group');
+            formGroupSelect.innerHTML = '<option value="">-- เลือกกลุ่มเรียน --</option>';
+            Object.keys(window.studentMapping).forEach(groupKey => {
+                formGroupSelect.innerHTML += `<option value="${groupKey}">${groupKey.replace(/_/g, ' ')}</option>`;
+            });
+            window.updateStudentNameDropdown();
+        };
+
+        // จัดการเพิ่มกลุ่มเรียนใหม่ขึ้น Firebase
+        window.handleAddGroup = function() {
+            const groupInput = document.getElementById('settings-group-input');
+            const newGroupName = groupInput.value.trim();
+            if (!newGroupName) return alert("กรุณาพิมพ์ชื่อกลุ่มเรียนที่ต้องการเพิ่มด้วยครับ");
+            
+            // Firebase ไม่อนุญาตให้ใช้เครื่องหมายจุดหรือเว้นวรรคเป็น Key หลัก จึงแปลงเป็น Underline แทนเพื่อความเสถียร
+            const firebaseKey = newGroupName.replace(/[\.\s\#\$\[\]]/g, '_');
+            
+            if(window.studentMapping[firebaseKey]) return alert("มีกลุ่มเรียนนี้ในระบบคลาวด์แล้วครับ");
+
+            set(ref(db, `money_plus_settings/studentMapping/${firebaseKey}`), ["นักเรียนใหม่ประจำห้อง"])
+                .then(() => {
+                    groupInput.value = '';
+                    alert("🎉 เพิ่มกลุ่มเรียนใหม่เข้าสู่คลาวด์สำเร็จ");
+                });
+        };
+
+        // จัดการลบกลุ่มเรียนออกจากระบบคลาวด์
+        window.handleDeleteGroup = function(groupKey) {
+            const display = groupKey.replace(/_/g, ' ');
+            if (confirm(`⚠️ คำเตือนร้ายแรง: คุณต้องการลบกลุ่มเรียน "${display}" พร้อมข้อมูลรายชื่อนักเรียนข้างในทั้งหมดใช่หรือไม่?\n(ประวัติการเก็บเงินในตารางจะไม่หายไป)`)) {
+                remove(ref(db, `money_plus_settings/studentMapping/${groupKey}`))
+                    .then(() => alert("ลบกลุ่มเรียนออกเรียบร้อยแล้ว"));
+            }
+        };
+
+        // โหลดรายชื่อนักเรียนมาแสดงผลในตารางฝั่งจัดการหน้าหลังบ้าน
+        window.loadSettingsStudentList = function() {
+            const selectedGroup = document.getElementById('settings-group-select').value;
+            const studentListDiv = document.getElementById('settings-student-list');
+            studentListDiv.innerHTML = '';
+
+            if(!selectedGroup || !window.studentMapping[selectedGroup]) {
+                studentListDiv.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">กรุณาเลือกกลุ่มเรียนด้านบนก่อน</p>';
+                return;
+            }
+
+            const list = window.studentMapping[selectedGroup];
+            list.forEach((name, index) => {
+                studentListDiv.innerHTML += `
+                    <div class="flex justify-between items-center bg-white/3 border border-white/5 p-2 rounded-xl mb-1.5 hover:bg-white/5 transition-all">
+                        <span class="text-sm text-gray-200 pl-1">👤 ${name}</span>
+                        <button onclick="handleDeleteStudent(${index})" class="text-xs text-gray-400 hover:text-red-400 px-2 py-1 cursor-pointer transition-all">✕ ถอดชื่อ</button>
+                    </div>`;
+            });
+        };
+
+        // สั่งเพิ่มรายชื่อนักเรียนเข้าสู่กิ่งแถวในกลุ่มเรียนบน Firebase
+        window.handleAddStudent = function() {
+            const selectedGroup = document.getElementById('settings-group-select').value;
+            const studentInput = document.getElementById('settings-student-input');
+            const name = studentInput.value.trim();
+
+            if (!selectedGroup) return alert("กรุณาเลือกกลุ่มเรียนที่ตั้งใจจะเพิ่มชื่อนักเรียนเข้าไปก่อนครับ");
+            if (!name) return alert("กรุณากรอกชื่อเล่นนักเรียนด้วยครับ");
+
+            let currentList = [...window.studentMapping[selectedGroup]];
+            // หากมีข้อความจำลองตอนสร้างห้องให้เคลียร์ออกก่อน
+            if(currentList.length === 1 && currentList[0] === "นักเรียนใหม่ประจำห้อง") currentList = [];
+            
+            if(currentList.includes(name)) return alert("มีรายชื่อนักเรียนคนนี้ในกลุ่มนี้อยู่แล้วครับ");
+            currentList.push(name);
+
+            set(ref(db, `money_plus_settings/studentMapping/${selectedGroup}`), currentList)
+                .then(() => {
+                    studentInput.value = '';
+                    window.loadSettingsStudentList();
+                });
+        };
+
+        // ลบชื่อนักเรียนเดี่ยว
+        window.handleDeleteStudent = function(index) {
+            const selectedGroup = document.getElementById('settings-group-select').value;
+            let currentList = [...window.studentMapping[selectedGroup]];
+            const targetName = currentList[index];
+
+            if(confirm(`ถอนชื่อคุณ "${targetName}" ออกจากกลุ่มนี้ใช่ไหม?`)) {
+                currentList.splice(index, 1);
+                if(currentList.length === 0) currentList = ["นักเรียนใหม่ประจำห้อง"]; // ป้องกัน Node หาย
+                set(ref(db, `money_plus_settings/studentMapping/${selectedGroup}`), currentList)
+                    .then(() => window.loadSettingsStudentList());
+            }
+        };
+
+        // สั่งลบแถวประวัติค่าเรียน
+        window.deleteRecord = function(recordKey, studentName) {
+            if (confirm(`คุณต้องการลบข้อมูลรายรับเรียนของ "${studentName}" ใช่หรือไม่?\n(ข้อมูลจะถูกนำออกทันที)`)) {
+                remove(ref(db, `money_plus_records/${recordKey}`))
+                    .then(() => alert("🗑️ ลบข้อมูลออกจากฐานข้อมูลเรียบร้อยแล้ว"));
+            }
+        };
+
+        // บันทึกฟอร์มค่าเรียน
         window.handleFormSubmit = function(event) {
             event.preventDefault();
             const rawDate = document.getElementById('form-date').value;
@@ -344,27 +528,18 @@
 
             push(recordsRef, newData)
                 .then(() => {
-                    alert(`🎉 ส่งข้อมูลขึ้นคลาวด์สำเร็จ!\nระบบทำการแชร์ข้อมูลให้ทุกอุปกรณ์อื่นเรียบร้อยแล้ว`);
+                    alert(`🎉 ส่งข้อมูลรายรับเข้าคลาวด์สำเร็จ!`);
                     document.getElementById('student-form').reset();
-                    updateStudentNameDropdown();
+                    window.updateFormGroupDropdown();
                     switchTab('table');
                 })
-                .catch((error) => alert("เกิดข้อผิดพลาดในการบันทึก: " + error.message));
+                .catch((error) => alert("เกิดข้อผิดพลาด: " + error.message));
         };
     </script>
 
     <script>
-        const studentMapping = {
-            "ม.4 จันทร์": ["ม.4 เพลง", "ม.4 ปลื้ม", "ม.4 ภีม"],
-            "ม.4 ศุกร์": ["ม.4 กัปตัน", "ม.4 อัย", "ม.4 ปัณ"],
-            "ม.5 ศุกร์": ["ม.5 ปัณ", "ม.5 อัย", "ม.5 กัปตัน"],
-            "ม.3 พฤหัสบดี": ["ม.3 พี", "ม.3 อิ้ง", "ม.3 ออกัส"],
-            "ปิดเทอม": ["ม.3 อิ้ง", "ม.4 เจมส์"],
-            "อื่น ๆ": ["ม.5 ติวเตอร์", "ม.4 ทริกเกอร์"]
-        };
-
         function switchTab(tabName) {
-            ['dashboard', 'table', 'form'].forEach(t => {
+            ['dashboard', 'table', 'form', 'settings'].forEach(t => {
                 document.getElementById(`section-${t}`).classList.add('hidden');
                 document.getElementById(`nav-${t}`).classList.remove('bg-white/10', 'text-[#03DAC6]', 'font-medium', 'border-white/10', 'shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]');
                 document.getElementById(`nav-${t}`).classList.add('text-gray-400', 'border-transparent');
@@ -373,20 +548,29 @@
             document.getElementById(`nav-${tabName}`).classList.add('bg-white/10', 'text-[#03DAC6]', 'font-medium', 'border-white/10', 'shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]');
             document.getElementById(`nav-${tabName}`).classList.remove('text-gray-400', 'border-transparent');
             
-            const titles = { 'dashboard': 'แดชบอร์ดภาพรวม', 'table': 'ตารางข้อมูลทั้งหมด', 'form': 'บันทึกค่าเรียนใหม่' };
+            const titles = { 'dashboard': 'แดชบอร์ดภาพรวม', 'table': 'ตารางข้อมูลทั้งหมด', 'form': 'บันทึกค่าเรียนใหม่', 'settings': '⚙️ ตั้งค่ากลุ่มและนักเรียน' };
             document.getElementById('page-title').innerText = titles[tabName];
+
+            // ซ่อนฟิลเตอร์เดือน/ปีในหน้าการตั้งค่าเพื่อความสวยงาม
+            if(tabName === 'settings') document.getElementById('header-filters').classList.add('invisible');
+            else document.getElementById('header-filters').classList.remove('invisible');
         }
 
         function updateStudentNameDropdown() {
             const selectedGroup = document.getElementById('form-group').value;
             const nameDropdown = document.getElementById('form-name');
             nameDropdown.innerHTML = '';
-            if (!selectedGroup || !studentMapping[selectedGroup]) {
-                nameDropdown.innerHTML = '<option value="">-- กรุณาเลือกกลุ่มเรียนก่อน --</option>';
+            
+            if (!selectedGroup || !window.studentMapping[selectedGroup]) {
+                nameDropdown.innerHTML = '<option value="" class="text-gray-400">-- กรุณาเลือกกลุ่มเรียนก่อน --</option>';
                 return;
             }
-            studentMapping[selectedGroup].forEach(name => {
-                nameDropdown.innerHTML += `<option value="${name}">${name}</option>`;
+            
+            nameDropdown.innerHTML = '<option value="" class="text-gray-400">-- เลือกชื่อนักเรียน --</option>';
+            window.studentMapping[selectedGroup].forEach(name => {
+                if (name !== "นักเรียนใหม่ประจำห้อง") {
+                    nameDropdown.innerHTML += `<option value="${name}" class="text-white">${name}</option>`;
+                }
             });
         }
 
