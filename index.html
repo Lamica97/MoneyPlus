@@ -280,7 +280,7 @@
         onValue(mappingRef, (snapshot) => {
             const data = snapshot.val();
             if (!data) {
-                // อพยพโครงสร้างข้อมูลเดิมของคุณขึ้น Firebase ครั้งแรก
+                // โครงสร้างข้อมูลรายชื่อนักเรียนเริ่มต้น
                 const defaultMapping = {
                     "ม_4 จันทร์": ["ม.4 เพลง", "ม.4 ปลื้ม", "ม.4 ภีม"],
                     "ม_4 ศุกร์": ["ม.4 กัปตัน", "ม.4 อัย", "ม.4 ปัณ"],
@@ -304,7 +304,7 @@
             window.processData();
         });
 
-        // ฟังก์ชันประมวลผลวาดภาพรวมตารางข้อมูลและ Dashboard
+        // ฟังก์ชันประมวลผลวาดภาพรวมตารางข้อมูลและ Dashboard (ยืดหยุ่นรองรับ Case-Insensitive พิมพ์เล็ก/ใหญ่)
         window.processData = function() {
             const activeYear = document.getElementById('global-year').value;
             const activeMonth = document.getElementById('global-month').value;
@@ -326,31 +326,42 @@
             items.reverse(); // เรียงจากใหม่ไปเก่า
 
             items.forEach(item => {
-                const matchYear = item.year === activeYear;
-                const matchMonth = activeMonth === "ทั้งหมด" || item.month === activeMonth;
+                // ดึงค่าแบบยืดหยุ่นสูง (รองรับทั้ง พิมพ์เล็ก พิมพ์ใหญ่ และตรวจเช็กเว้นวรรคท้ายคำอย่างรอบคอบ)
+                const itemYear = String(item.year || item.Year || '').trim();
+                const itemMonth = String(item.month || item.Month || '').trim();
+                const itemDate = String(item.date || item.Date || '').trim();
+                const itemGroup = String(item.group || item.Group || '').trim();
+                const itemName = String(item.name || item.Name || item['name '] || item['Name '] || '').trim();
+                const itemStatus = String(item.status || item.Status || '').trim();
+                
+                // ตรวจหาตัวแปรยอดเงิน (Amount หรือ amount) แล้วแปลงเป็นตัวเลข
+                const rawAmount = item.amount !== undefined ? item.amount : (item.Amount !== undefined ? item.Amount : 0);
+                const itemAmount = parseInt(rawAmount) || 0;
+
+                const matchYear = itemYear === activeYear;
+                const matchMonth = activeMonth === "ทั้งหมด" || itemMonth === activeMonth;
                 
                 if (matchYear && matchMonth) {
                     count++;
-                    if (item.status === "จ่ายแล้ว") paidTotal += item.amount;
-                    else if (item.status === "ค้างจ่าย") pendingTotal += item.amount;
+                    if (itemStatus === "จ่ายแล้ว") paidTotal += itemAmount;
+                    else if (itemStatus === "ค้างจ่าย") pendingTotal += itemAmount;
 
-                    const displayGroup = item.group ? item.group.replace(/_/g, ' ') : 'ไม่ระบุกลุ่ม';
+                    const displayGroup = itemGroup ? itemGroup.replace(/_/g, ' ') : 'ไม่ระบุกลุ่ม';
                     if (!groupStats[displayGroup]) groupStats[displayGroup] = 0;
-                    if (item.status === "จ่ายแล้ว") groupStats[displayGroup] += item.amount;
+                    if (itemStatus === "จ่ายแล้ว") groupStats[displayGroup] += itemAmount;
 
-                    const itemName = item.name || '';
                     const matchSearch = itemName.toLowerCase().includes(tableSearch) || displayGroup.toLowerCase().includes(tableSearch);
-                    const matchStatus = tableStatus === "ทั้งหมด" || item.status === tableStatus;
+                    const matchStatus = tableStatus === "ทั้งหมด" || itemStatus === tableStatus;
 
                     if (tbody && matchSearch && matchStatus) {
-                        const badgeClass = item.status === "จ่ายแล้ว" ? "bg-[#0D533A]/80 text-[#03DAC6] border border-[#03DAC6]/20" : "bg-[#5C1D24]/80 text-[#FF7597] border border-[#FF7597]/20";
+                        const badgeClass = itemStatus === "จ่ายแล้ว" ? "bg-[#0D533A]/80 text-[#03DAC6] border border-[#03DAC6]/20" : "bg-[#5C1D24]/80 text-[#FF7597] border border-[#FF7597]/20";
                         tbody.innerHTML += `
                             <tr class="hover:bg-white/5 transition-colors">
-                                <td class="p-4 font-medium">${item.date}</td>
+                                <td class="p-4 font-medium">${itemDate}</td>
                                 <td class="p-4 text-gray-400 font-medium">${displayGroup}</td>
                                 <td class="p-4 font-semibold text-white">${itemName}</td>
-                                <td class="p-4 text-right font-bold text-white font-mono">฿${item.amount.toLocaleString()}</td>
-                                <td class="p-4 text-center"><span class="px-2.5 py-1 rounded-full text-xs font-bold shadow-sm ${badgeClass}">${item.status}</span></td>
+                                <td class="p-4 text-right font-bold text-white font-mono">฿${itemAmount.toLocaleString()}</td>
+                                <td class="p-4 text-center"><span class="px-2.5 py-1 rounded-full text-xs font-bold shadow-sm ${badgeClass}">${itemStatus}</span></td>
                                 <td class="p-4 text-center">
                                     <button onclick="deleteRecord('${item._key}', '${itemName}')" class="px-2.5 py-1 text-xs font-semibold bg-red-500/10 border border-red-500/20 text-[#FF7597] hover:bg-red-500 hover:text-white rounded-lg cursor-pointer transition-all">
                                         🗑️ ลบ
