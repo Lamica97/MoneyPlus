@@ -274,13 +274,12 @@
         const mappingRef = ref(db, 'money_plus_settings/studentMapping');
 
         let rawDataset = {};
-        window.studentMapping = {}; // เปลี่ยนเป็นโกลบอลเพื่อดึงใช้งานข้ามฟังก์ชัน
+        window.studentMapping = {}; 
 
-        // ซิงค์ชุดตั้งค่ากลุ่มนักเรียนเริ่มต้นเข้าคลาวด์ (กรณีเป็นก้อนเปล่า)
+        // ซิงค์ชุดตั้งค่ากลุ่มนักเรียนเริ่มต้นเข้าคลาวด์
         onValue(mappingRef, (snapshot) => {
             const data = snapshot.val();
             if (!data) {
-                // โครงสร้างข้อมูลรายชื่อนักเรียนเริ่มต้น
                 const defaultMapping = {
                     "ม_4 จันทร์": ["ม.4 เพลง", "ม.4 ปลื้ม", "ม.4 ภีม"],
                     "ม_4 ศุกร์": ["ม.4 กัปตัน", "ม.4 อัย", "ม.4 ปัณ"],
@@ -304,7 +303,7 @@
             window.processData();
         });
 
-        // ฟังก์ชันประมวลผลวาดภาพรวมตารางข้อมูลและ Dashboard (ยืดหยุ่นรองรับ Case-Insensitive พิมพ์เล็ก/ใหญ่)
+        // ฟังก์ชันประมวลผลดึงข้อมูล (อัปเกรดสูงสุด: รองรับทั้งคีย์ตัวเลข 0-6 และคีย์ตัวอักษร Case-insensitive)
         window.processData = function() {
             const activeYear = document.getElementById('global-year').value;
             const activeMonth = document.getElementById('global-month').value;
@@ -316,7 +315,7 @@
             const tbody = document.getElementById('table-rows');
             if (tbody) tbody.innerHTML = '';
 
-            // ตรวจสอบและแปลงโครงสร้างข้อมูลให้รองรับทั้งแบบ Array (เลขลำดับ) และแบบ Object (คีย์สุ่ม)
+            // แปลงโครงสร้างข้อมูลจาก Firebase
             let items = [];
             if (Array.isArray(rawDataset)) {
                 items = rawDataset.filter(item => item !== null).map((item, index) => ({ _key: `csv_${index}`, ...item }));
@@ -326,18 +325,30 @@
             items.reverse(); // เรียงจากใหม่ไปเก่า
 
             items.forEach(item => {
-                // ดึงค่าแบบยืดหยุ่นสูง (รองรับทั้ง พิมพ์เล็ก พิมพ์ใหญ่ และตรวจเช็กเว้นวรรคท้ายคำอย่างรอบคอบ)
-                const itemYear = String(item.year || item.Year || '').trim();
-                const itemMonth = String(item.month || item.Month || '').trim();
-                const itemDate = String(item.date || item.Date || '').trim();
-                const itemGroup = String(item.group || item.Group || '').trim();
-                const itemName = String(item.name || item.Name || item['name '] || item['Name '] || '').trim();
-                const itemStatus = String(item.status || item.Status || '').trim();
-                
-                // ตรวจหาตัวแปรยอดเงิน (Amount หรือ amount) แล้วแปลงเป็นตัวเลข
-                const rawAmount = item.amount !== undefined ? item.amount : (item.Amount !== undefined ? item.Amount : 0);
-                const itemAmount = parseInt(rawAmount) || 0;
+                let itemDate = '', itemYear = '', itemMonth = '', itemGroup = '', itemName = '', itemStatus = '', itemAmount = 0;
 
+                // ตรวจสอบโครงสร้าง: ถ้าเป็นรูปแบบแถวตัวเลขดัชนี 0 ถึง 6 (ข้อมูลเก่าที่เพิ่งอัปขึ้น)
+                if (item[0] !== undefined && item[1] !== undefined && item[2] !== undefined) {
+                    itemDate = String(item[0] || '').trim();
+                    itemYear = String(item[1] || '').trim();
+                    itemMonth = String(item[2] || '').trim();
+                    itemGroup = String(item[3] || '').trim();
+                    itemName = String(item[4] || '').trim();
+                    itemAmount = parseInt(item[5]) || 0;
+                    itemStatus = String(item[6] || '').trim();
+                } else {
+                    // ถ้าเป็นรูปแบบคีย์ตัวอักษรปกติ (ข้อมูลใหม่ หรือก้อนแก้ไขแล้ว)
+                    itemYear = String(item.year || item.Year || '').trim();
+                    itemMonth = String(item.month || item.Month || '').trim();
+                    itemDate = String(item.date || item.Date || '').trim();
+                    itemGroup = String(item.group || item.Group || '').trim();
+                    itemName = String(item.name || item.Name || item['name '] || item['Name '] || '').trim();
+                    itemStatus = String(item.status || item.Status || '').trim();
+                    const rawAmount = item.amount !== undefined ? item.amount : (item.Amount !== undefined ? item.Amount : 0);
+                    itemAmount = parseInt(rawAmount) || 0;
+                }
+
+                // สกัดกรองเงื่อนไขตามตัวเลือกปีและเดือนหน้าแดชบอร์ด
                 const matchYear = itemYear === activeYear;
                 const matchMonth = activeMonth === "ทั้งหมด" || itemMonth === activeMonth;
                 
@@ -407,13 +418,11 @@
 
             Object.keys(window.studentMapping).forEach(groupKey => {
                 const cleanName = groupKey.replace(/_/g, ' ');
-                // เติมลงในรายการควบคุมกลุ่ม
                 groupListDiv.innerHTML += `
                     <div class="flex justify-between items-center bg-white/3 border border-white/5 p-2 rounded-xl mb-1.5 hover:bg-white/5 transition-all">
                         <span class="text-sm font-medium text-white pl-1">📚 ${cleanName}</span>
                         <button onclick="handleDeleteGroup('${groupKey}')" class="text-xs bg-red-500/10 border border-red-500/20 text-[#FF7597] hover:bg-red-500 hover:text-white px-2 py-1 rounded-lg transition-all cursor-pointer">🗑️ ลบทั้งกลุ่ม</button>
                     </div>`;
-                // เติมลงในดรอปดาวน์สวิตช์รายชื่อนักเรียน
                 groupSelect.innerHTML += `<option value="${groupKey}">${cleanName}</option>`;
             });
 
@@ -440,7 +449,6 @@
             if (!newGroupName) return alert("กรุณาพิมพ์ชื่อกลุ่มเรียนที่ต้องการเพิ่มด้วยครับ");
             
             const firebaseKey = newGroupName.replace(/[\.\s\#\$\[\]]/g, '_');
-            
             if(window.studentMapping[firebaseKey]) return alert("มีกลุ่มเรียนนี้ในระบบคลาวด์แล้วครับ");
 
             set(ref(db, `money_plus_settings/studentMapping/${firebaseKey}`), ["นักเรียนใหม่ประจำห้อง"])
@@ -510,7 +518,7 @@
 
             if(confirm(`ถอนชื่อคุณ "${targetName}" ออกจากกลุ่มนี้ใช่ไหม?`)) {
                 currentList.splice(index, 1);
-                if(currentList.length === 0) currentList = ["นักเรียนใหม่ประจำห้อง"]; // ป้องกัน Node หาย
+                if(currentList.length === 0) currentList = ["นักเรียนใหม่ประจำห้อง"]; 
                 set(ref(db, `money_plus_settings/studentMapping/${selectedGroup}`), currentList)
                     .then(() => window.loadSettingsStudentList());
             }
@@ -566,7 +574,6 @@
             const titles = { 'dashboard': 'แดชบอร์ดภาพรวม', 'table': 'ตารางข้อมูลทั้งหมด', 'form': 'บันทึกค่าเรียนใหม่', 'settings': '⚙️ ตั้งค่ากลุ่มและนักเรียน' };
             document.getElementById('page-title').innerText = titles[tabName];
 
-            // ซ่อนฟิลเตอร์เดือน/ปีในหน้าการตั้งค่าเพื่อความสวยงาม
             if(tabName === 'settings') document.getElementById('header-filters').classList.add('invisible');
             else document.getElementById('header-filters').classList.remove('invisible');
         }
