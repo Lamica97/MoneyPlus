@@ -150,7 +150,6 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-white/5 border-b border-white/5 text-gray-300 text-xs font-bold tracking-wide">
-                                    <th class="p-4 w-20 text-center">รหัสอ้างอิง</th>
                                     <th class="p-4">วันที่เรียน</th>
                                     <th class="p-4">กลุ่มเรียน</th>
                                     <th class="p-4">ชื่อนักเรียน</th>
@@ -317,7 +316,14 @@
             const tbody = document.getElementById('table-rows');
             if (tbody) tbody.innerHTML = '';
 
-            const items = Object.keys(rawDataset).map(key => ({ _key: key, ...rawDataset[key] })).reverse();
+            // ตรวจสอบและแปลงโครงสร้างข้อมูลให้รองรับทั้งแบบ Array (เลขลำดับ) และแบบ Object (คีย์สุ่ม)
+            let items = [];
+            if (Array.isArray(rawDataset)) {
+                items = rawDataset.filter(item => item !== null).map((item, index) => ({ _key: `csv_${index}`, ...item }));
+            } else {
+                items = Object.keys(rawDataset).map(key => ({ _key: key, ...rawDataset[key] }));
+            }
+            items.reverse(); // เรียงจากใหม่ไปเก่า
 
             items.forEach(item => {
                 const matchYear = item.year === activeYear;
@@ -328,25 +334,25 @@
                     if (item.status === "จ่ายแล้ว") paidTotal += item.amount;
                     else if (item.status === "ค้างจ่าย") pendingTotal += item.amount;
 
-                    const displayGroup = item.group.replace(/_/g, ' ');
+                    const displayGroup = item.group ? item.group.replace(/_/g, ' ') : 'ไม่ระบุกลุ่ม';
                     if (!groupStats[displayGroup]) groupStats[displayGroup] = 0;
                     if (item.status === "จ่ายแล้ว") groupStats[displayGroup] += item.amount;
 
-                    const matchSearch = item.name.toLowerCase().includes(tableSearch) || displayGroup.toLowerCase().includes(tableSearch);
+                    const itemName = item.name || '';
+                    const matchSearch = itemName.toLowerCase().includes(tableSearch) || displayGroup.toLowerCase().includes(tableSearch);
                     const matchStatus = tableStatus === "ทั้งหมด" || item.status === tableStatus;
 
                     if (tbody && matchSearch && matchStatus) {
                         const badgeClass = item.status === "จ่ายแล้ว" ? "bg-[#0D533A]/80 text-[#03DAC6] border border-[#03DAC6]/20" : "bg-[#5C1D24]/80 text-[#FF7597] border border-[#FF7597]/20";
                         tbody.innerHTML += `
                             <tr class="hover:bg-white/5 transition-colors">
-                                <td class="p-4 text-center text-gray-500 text-xs font-mono select-all">${item._key.substring(1, 6)}...</td>
                                 <td class="p-4 font-medium">${item.date}</td>
                                 <td class="p-4 text-gray-400 font-medium">${displayGroup}</td>
-                                <td class="p-4 font-semibold text-white">${item.name}</td>
+                                <td class="p-4 font-semibold text-white">${itemName}</td>
                                 <td class="p-4 text-right font-bold text-white font-mono">฿${item.amount.toLocaleString()}</td>
                                 <td class="p-4 text-center"><span class="px-2.5 py-1 rounded-full text-xs font-bold shadow-sm ${badgeClass}">${item.status}</span></td>
                                 <td class="p-4 text-center">
-                                    <button onclick="deleteRecord('${item._key}', '${item.name}')" class="px-2.5 py-1 text-xs font-semibold bg-red-500/10 border border-red-500/20 text-[#FF7597] hover:bg-red-500 hover:text-white rounded-lg cursor-pointer transition-all">
+                                    <button onclick="deleteRecord('${item._key}', '${itemName}')" class="px-2.5 py-1 text-xs font-semibold bg-red-500/10 border border-red-500/20 text-[#FF7597] hover:bg-red-500 hover:text-white rounded-lg cursor-pointer transition-all">
                                         🗑️ ลบ
                                     </button>
                                 </td>
@@ -422,7 +428,6 @@
             const newGroupName = groupInput.value.trim();
             if (!newGroupName) return alert("กรุณาพิมพ์ชื่อกลุ่มเรียนที่ต้องการเพิ่มด้วยครับ");
             
-            // Firebase ไม่อนุญาตให้ใช้เครื่องหมายจุดหรือเว้นวรรคเป็น Key หลัก จึงแปลงเป็น Underline แทนเพื่อความเสถียร
             const firebaseKey = newGroupName.replace(/[\.\s\#\$\[\]]/g, '_');
             
             if(window.studentMapping[firebaseKey]) return alert("มีกลุ่มเรียนนี้ในระบบคลาวด์แล้วครับ");
@@ -474,7 +479,6 @@
             if (!name) return alert("กรุณากรอกชื่อเล่นนักเรียนด้วยครับ");
 
             let currentList = [...window.studentMapping[selectedGroup]];
-            // หากมีข้อความจำลองตอนสร้างห้องให้เคลียร์ออกก่อน
             if(currentList.length === 1 && currentList[0] === "นักเรียนใหม่ประจำห้อง") currentList = [];
             
             if(currentList.includes(name)) return alert("มีรายชื่อนักเรียนคนนี้ในกลุ่มนี้อยู่แล้วครับ");
