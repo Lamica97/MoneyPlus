@@ -765,32 +765,58 @@
 
         window.toggleStatus = function(dbKey, currentStatus) {
             const newStatus = currentStatus === "จ่ายแล้ว" ? "ค้างจ่าย" : "จ่ายแล้ว";
-            const isArray = Array.isArray(rawDataset);
             
-            if (isArray) {
+            // เช็คว่า dbKey เป็น Key อัตโนมัติของ Firebase (เช่น ขึ้นต้นด้วย -) หรือไม่
+            const isFirebasePushKey = typeof dbKey === 'string' && dbKey.startsWith('-');
+
+            if (!isFirebasePushKey && Array.isArray(rawDataset)) {
+                // กรณีเป็นข้อมูลแบบสไตล์ Array ดั้งเดิม (Index 0, 1, 2, ...)
                 const targetIdx = parseInt(dbKey);
                 const recordData = rawDataset[targetIdx];
+                
                 if (!recordData) {
                     alert("ไม่พบข้อมูลรายการนี้บนฐานข้อมูล หรือตำแหน่งข้อมูลคลาดเคลื่อน");
                     return;
                 }
-                const cellRef = ref(db, `money_plus_records/${targetIdx}/5`);
-                set(cellRef, newStatus)
-                    .catch((error) => alert("เกิดข้อผิดพลาดในการอัปเดต: " + error.message));
+
+                // ตรวจสอบว่าโครงสร้างข้างในเป็นแบบย่อยอาร์เรย์ [amount, date, group, ...] หรือไม่
+                if (Array.isArray(recordData) || recordData.hasOwnProperty('5')) {
+                    set(ref(db, `money_plus_records/${targetIdx}/5`), newStatus)
+                        .catch((error) => alert("เกิดข้อผิดพลาดในการอัปเดต: " + error.message));
+                } else {
+                    // หากข้างในถูกแปลงเป็น Object แล้วแต่ยังอยู่ใน Array หลัก
+                    const targetRef = ref(db, `money_plus_records/${targetIdx}`);
+                    let updatedData = {};
+                    if (recordData.hasOwnProperty('status')) updatedData.status = newStatus;
+                    if (recordData.hasOwnProperty('Status')) updatedData.Status = newStatus;
+                    if (Object.keys(updatedData).length === 0) updatedData.status = newStatus;
+                    
+                    update(targetRef, updatedData)
+                        .catch((error) => alert("เกิดข้อผิดพลาด: " + error.message));
+                }
             } else {
+                // กรณีข้อมูลที่เป็นแบบ Object Key (ได้มาจากฟอร์มกรอก หรือ push)
                 const recordData = rawDataset[dbKey];
                 if (!recordData) {
                     alert("ไม่พบข้อมูลรายการนี้บนฐานข้อมูล");
                     return;
                 }
+                
                 const targetRef = ref(db, `money_plus_records/${dbKey}`);
-                let updatedData = {};
-                if (recordData.hasOwnProperty('status')) updatedData.status = newStatus;
-                if (recordData.hasOwnProperty('Status')) updatedData.Status = newStatus;
-                if (Object.keys(updatedData).length === 0) updatedData.status = newStatus;
+                
+                // ตรวจสอบโครงสร้างเพื่ออัปเดต Key คีย์ให้ถูกตัว (status หรือ Status หรือช่องที่ 5)
+                if (Array.isArray(recordData) || recordData.hasOwnProperty('5')) {
+                    set(ref(db, `money_plus_records/${dbKey}/5`), newStatus)
+                        .catch((error) => alert("เกิดข้อผิดพลาด: " + error.message));
+                } else {
+                    let updatedData = {};
+                    if (recordData.hasOwnProperty('status')) updatedData.status = newStatus;
+                    if (recordData.hasOwnProperty('Status')) updatedData.Status = newStatus;
+                    if (Object.keys(updatedData).length === 0) updatedData.status = newStatus;
 
-                update(targetRef, updatedData)
-                    .catch((error) => alert("เกิดข้อผิดพลาดในการปรับสถานะบน Cloud: " + error.message));
+                    update(targetRef, updatedData)
+                        .catch((error) => alert("เกิดข้อผิดพลาดในการปรับสถานะบน Cloud: " + error.message));
+                }
             }
         };
 
