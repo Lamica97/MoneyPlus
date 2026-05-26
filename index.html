@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Money Plus+</title>
+    <title>Money Plus+ Dashboard (Fully Managed Glassmorphism)</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -169,7 +169,7 @@
                                     <th class="p-4">กลุ่มเรียน</th>
                                     <th class="p-4">ชื่อนักเรียน</th>
                                     <th class="p-4 text-right">ค่าเรียน</th>
-                                    <th class="p-4 text-center">สถานะ</th>
+                                    <th class="p-4 text-center">สถานะ (คลิกเพื่อเปลี่ยน)</th>
                                     <th class="p-4 w-24 text-center">การจัดการ</th>
                                 </tr>
                             </thead>
@@ -267,7 +267,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, remove, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, push, onValue, remove, set, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCo1DAVwIjiHlyvf0nDVI1s0e7vxInGdlE",
@@ -323,7 +323,6 @@
 
             let paidTotal = 0, pendingTotal = 0, count = 0;
             
-            // โครงสร้างสะสมสถิติ
             let groupStats = {}; 
             let yearStats = { "2025": { paid: 0, pending: 0 }, "2026": { paid: 0, pending: 0 } };
             
@@ -336,9 +335,9 @@
 
             let items = [];
             if (Array.isArray(rawDataset)) {
-                items = rawDataset.filter(item => item !== null).map((item, index) => ({ _key: `csv_${index}`, ...item }));
+                items = rawDataset.map((item, index) => item ? { _key: index.toString(), actualIndex: index, ...item } : null).filter(item => item !== null);
             } else {
-                items = Object.keys(rawDataset).map(key => ({ _key: key, ...rawDataset[key] }));
+                items = Object.keys(rawDataset).map(key => ({ _key: key, actualIndex: key, ...rawDataset[key] }));
             }
             items.reverse(); 
 
@@ -364,13 +363,11 @@
                     itemAmount = parseInt(rawAmount) || 0;
                 }
 
-                // สถิติสะสมรายปีหลัก (สะสมทุกอย่างไม่โดนฟิลเตอร์สกัดกั้น)
                 if (yearStats[itemYear]) {
                     if (itemStatus === "จ่ายแล้ว") yearStats[itemYear].paid += itemAmount;
                     else if (itemStatus === "ค้างจ่าย") yearStats[itemYear].pending += itemAmount;
                 }
 
-                // สถิติสะสมรายเดือน (จะยึดตามปีหลักที่กดยกขึ้นฟิลเตอร์เสมอ)
                 if (itemYear === activeYear) {
                     if (monthStats[itemMonth]) {
                         if (itemStatus === "จ่ายแล้ว") monthStats[itemMonth].paid += itemAmount;
@@ -378,7 +375,6 @@
                     }
                 }
 
-                // ส่วนคำนวณของตารางสถิติด้านล่างและ KPI
                 const matchYear = itemYear === activeYear;
                 const matchMonth = activeMonth === "ทั้งหมด" || itemMonth === activeMonth;
                 
@@ -406,11 +402,15 @@
                                 <td class="p-4 text-gray-400 font-medium">${displayGroup}</td>
                                 <td class="p-4 font-semibold text-white">${itemName}</td>
                                 <td class="p-4 text-right font-bold text-white font-mono">฿${itemAmount.toLocaleString()}</td>
-                                <td class="p-4 text-center"><span class="px-2.5 py-1 rounded-full text-xs font-bold shadow-sm ${badgeClass}">${itemStatus}</span></td>
                                 <td class="p-4 text-center">
-                                    <button onclick="deleteRecord('${item._key}', '${itemName}')" class="px-2.5 py-1 text-xs font-semibold bg-red-500/10 border border-red-500/20 text-[#FF7597] hover:bg-red-500 hover:text-white rounded-lg cursor-pointer transition-all">
-                                        🗑️ ลบ
-                                    </button>
+                                    <button onclick="window.toggleStatus('${item.actualIndex}', '${itemStatus}')" title="คลิกเพื่อสลับสถานะทันที" class="px-2.5 py-1 rounded-full text-xs font-bold shadow-sm ${badgeClass} cursor-pointer hover:scale-105 active:scale-95 select-none transition-all">
+    				        ${itemStatus}
+				    </button>
+                                </td>
+                                <td class="p-4 text-center">
+                                    <button onclick="window.deleteRecord('${item._key}', '${itemName}')" class="px-2.5 py-1 text-xs font-semibold bg-red-500/10 border border-red-500/20 text-[#FF7597] hover:bg-red-500 hover:text-white rounded-lg cursor-pointer transition-all">
+					🗑️ ลบ
+				    </button>
                                 </td>
                             </tr>
                         `;
@@ -418,12 +418,10 @@
                 }
             });
 
-            // อัปเดตกล่องรวมตัวเลขด้านบนสุด (KPI)
             document.getElementById('kpi-paid').innerText = `฿${paidTotal.toLocaleString()}`;
             document.getElementById('kpi-pending').innerText = `฿${pendingTotal.toLocaleString()}`;
             document.getElementById('kpi-count').innerText = `${count} รายการ`;
 
-            // 📊 1. เรนเดอร์แผนภูมิสรุปยอดเงิน จ่ายแล้ว VS ค้างจ่าย แยกตามปี (Yearly Bars)
             const yearBarsContainer = document.getElementById('year-bars');
             yearBarsContainer.innerHTML = '';
             
@@ -455,7 +453,6 @@
                     </div>`;
             });
 
-            // 📊 2. เรนเดอร์แผนภูมิสรุปยอดเงิน จ่ายแล้ว VS ค้างจ่าย แยกตามเดือนประจำปี (Monthly Bars)
             const monthBarsContainer = document.getElementById('month-bars');
             monthBarsContainer.innerHTML = '';
             
@@ -494,7 +491,6 @@
                 monthBarsContainer.innerHTML = `<p class="text-sm text-gray-500 text-center py-4">ไม่มีข้อมูลสถิติรายเดือนของปี ${activeYear}</p>`;
             }
 
-            // 📊 3. เรนเดอร์แผนภูมิสรุปยอดเงิน จ่ายแล้ว VS ค้างจ่าย แยกตามกลุ่มเรียน (Group Bars)
             const groupBarsContainer = document.getElementById('group-bars');
             groupBarsContainer.innerHTML = '';
             const groupKeys = Object.keys(groupStats);
@@ -557,7 +553,7 @@
                 groupListDiv.innerHTML += `
                     <div class="flex justify-between items-center bg-white/3 border border-white/5 p-2 rounded-xl mb-1.5 hover:bg-white/5 transition-all">
                         <span class="text-sm font-medium text-white pl-1">📚 ${cleanName}</span>
-                        <button onclick="handleDeleteGroup('${groupKey}')" class="text-xs bg-red-500/10 border border-red-500/20 text-[#FF7597] hover:bg-red-500 hover:text-white px-2 py-1 rounded-lg transition-all cursor-pointer">🗑️ ลบทั้งกลุ่ม</button>
+                        <button onclick="window.handleDeleteGroup('${groupKey}')" class="text-xs bg-red-500/10 border border-red-500/20 text-[#FF7597] hover:bg-red-500 hover:text-white px-2 py-1 rounded-lg transition-all cursor-pointer">🗑️ ลบทั้งกลุ่ม</button>
                     </div>`;
                 groupSelect.innerHTML += `<option value="${groupKey}">${cleanName}</option>`;
             });
@@ -615,7 +611,7 @@
                 studentListDiv.innerHTML += `
                     <div class="flex justify-between items-center bg-white/3 border border-white/5 p-2 rounded-xl mb-1.5 hover:bg-white/5 transition-all">
                         <span class="text-sm text-gray-200 pl-1">👤 ${name}</span>
-                        <button onclick="handleDeleteStudent(${index})" class="text-xs text-gray-400 hover:text-red-400 px-2 py-1 cursor-pointer transition-all">✕ ถอดชื่อ</button>
+                        <button onclick="window.handleDeleteStudent(${index})" class="text-xs text-gray-400 hover:text-red-400 px-2 py-1 cursor-pointer transition-all">✕ ถอดชื่อ</button>
                     </div>`;
             });
         };
@@ -654,10 +650,51 @@
             }
         };
 
+        // 🗑️ ฟังก์ชันลบข้อมูลรายการประจำแถว
         window.deleteRecord = function(recordKey, studentName) {
             if (confirm(`คุณต้องการลบข้อมูลรายรับเรียนของ "${studentName}" ใช่หรือไม่?\n(ข้อมูลจะถูกนำออกทันที)`)) {
                 remove(ref(db, `money_plus_records/${recordKey}`))
                     .then(() => alert("🗑️ ลบข้อมูลออกจากฐานข้อมูลเรียบร้อยแล้ว"));
+            }
+        };
+
+        // 🔄 ฟังก์ชันสลับสถานะการจ่ายเงิน (เวอร์ชันแก้ไข Array ป้องกันโครงสร้างพังและกดปุ่มไม่ทำงาน)
+        window.toggleStatus = function(dbKey, currentStatus) {
+            const newStatus = currentStatus === "จ่ายแล้ว" ? "ค้างจ่าย" : "จ่ายแล้ว";
+            const isArray = Array.isArray(rawDataset);
+            
+            if (isArray) {
+                // เคสข้อมูลประเภท Array (มาจากไฟล์ CSV)
+                const targetIdx = parseInt(dbKey);
+                const recordData = rawDataset[targetIdx];
+                
+                if (!recordData) {
+                    alert("ไม่พบข้อมูลรายการนี้บนฐานข้อมูล หรือตำแหน่งข้อมูลคลาดเคลื่อน");
+                    return;
+                }
+                
+                // ใช้คำสั่งชี้ตรงไปที่ตำแหน่ง Index ลำดับที่ 5 (ช่องของสถานะ) ของแถวนั้นใน Firebase โดยตรง
+                // วิธีนี้จะทำให้ Array คงสภาพเดิม ไม่พัง และค่าเปลี่ยนเรียลไทม์ทันที
+                const cellRef = ref(db, `money_plus_records/${targetIdx}/5`);
+                set(cellRef, newStatus)
+                    .catch((error) => alert("เกิดข้อผิดพลาดในการอัปเดต: " + error.message));
+                    
+            } else {
+                // เคสข้อมูลประเภท Object ทั่วไป (สร้างมาจากฟอร์มกรอกบนหน้าเว็บแอป)
+                const recordData = rawDataset[dbKey];
+                if (!recordData) {
+                    alert("ไม่พบข้อมูลรายการนี้บนฐานข้อมูล");
+                    return;
+                }
+
+                const targetRef = ref(db, `money_plus_records/${dbKey}`);
+                let updatedData = {};
+                if (recordData.hasOwnProperty('status')) updatedData.status = newStatus;
+                if (recordData.hasOwnProperty('Status')) updatedData.Status = newStatus;
+                if (Object.keys(updatedData).length === 0) updatedData.status = newStatus;
+
+                update(targetRef, updatedData)
+                    .catch((error) => alert("เกิดข้อผิดพลาดในการปรับสถานะบน Cloud: " + error.message));
             }
         };
 
