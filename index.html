@@ -3,11 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Money Plus+</title>
+    <title>Money Plus+ Dashboard (Fully Managed Glassmorphism)</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="manifest" href="./manifest.json">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2454/2454261.png">
+
     <style>
         body { 
             font-family: 'Noto Sans Thai', sans-serif; 
@@ -469,7 +476,7 @@
             document.getElementById('kpi-pending').innerText = `฿${pendingTotal.toLocaleString()}`;
             document.getElementById('kpi-count').innerText = `${count} รายการ`;
 
-            // === 1. แภนภูมิแท่งแนวตั้งแยกตามรายชื่อนักเรียน ===
+            // === 1. แผนภูมิแท่งแนวตั้งแยกตามรายชื่อนักเรียน ===
             const studentContainer = document.getElementById('student-vertical-container');
             studentContainer.innerHTML = '';
             const studentKeys = Object.keys(studentStats);
@@ -512,7 +519,7 @@
                 });
             }
 
-            // === 2. แผนภูมิรายปีทั้งหมด (ขยายขนาดแท่งกราฟให้หนาขึ้นเพื่อให้รับกับพื้นที่ 3 ส่วน) ===
+            // === 2. แผนภูมิรายปีทั้งหมด ===
             const yearContainer = document.getElementById('year-vertical-container');
             yearContainer.innerHTML = '';
             
@@ -838,14 +845,14 @@
             nameDropdown.innerHTML = '';
             
             if (!selectedGroup || !window.studentMapping[selectedGroup]) {
-                nameDropdown.innerHTML = '<option value=\"\" class=\"text-gray-400\">-- กรุณาเลือกกลุ่มเรียนก่อน --</option>';
+                nameDropdown.innerHTML = '<option value="" class="text-gray-400">-- กรุณาเลือกกลุ่มเรียนก่อน --</option>';
                 return;
             }
             
-            nameDropdown.innerHTML = '<option value=\"\" class=\"text-gray-400\">-- เลือกชื่อนักเรียน --</option>';
+            nameDropdown.innerHTML = '<option value="" class="text-gray-400">-- เลือกชื่อนักเรียน --</option>';
             window.studentMapping[selectedGroup].forEach(name => {
                 if (name !== "นักเรียนใหม่ประจำห้อง") {
-                    nameDropdown.innerHTML += `<option value=\"${name}\" class=\"text-white\">${name}</option>`;
+                    nameDropdown.innerHTML += `<option value="${name}" class="text-white">${name}</option>`;
                 }
             });
         }
@@ -856,5 +863,13 @@
             document.getElementById('form-date').value = new Date().toISOString().split('T')[0];
         });
     </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+            .then(() => console.log("Service Worker Registered Successfully"));
+        }
+    </script>
+
 </body>
 </html>
