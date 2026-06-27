@@ -1676,8 +1676,14 @@ function updateUnpaidSummary() {
                     itemName = parts.slice(1).join(' ');
                 }
             }
+            }
         }
         
+        if (itemDate && itemDate.includes('-')) {
+            itemDate = itemDate.split('-').pop();
+        }
+        
+
         if (itemStatus === "ค้างจ่าย" || itemStatus === "รอตรวจสอบ") {
             if (!window.unpaidStudentsMap[itemName]) {
                 window.unpaidStudentsMap[itemName] = { grade: itemGrade, total: 0, records: [] };
