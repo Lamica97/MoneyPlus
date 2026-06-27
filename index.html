@@ -1620,10 +1620,10 @@ window.processData = function() {
 function updateUnpaidSummary() {
     window.unpaidStudentsMap = {};
     let items = [];
-    if (Array.isArray(window.rawDataset)) {
-        items = window.rawDataset.map(item => item ? { ...item } : null).filter(item => item !== null);
-    } else if (window.rawDataset) {
-        items = Object.keys(window.rawDataset).map(key => ({ ...window.rawDataset[key] }));
+    if (typeof rawDataset !== 'undefined' && Array.isArray(rawDataset)) {
+        items = rawDataset.map(item => item ? { ...item } : null).filter(item => item !== null);
+    } else if (typeof rawDataset !== 'undefined' && rawDataset) {
+        items = Object.keys(rawDataset).map(key => ({ ...rawDataset[key] }));
     }
     
     // Inject Mock Data if no data found (e.g. running locally via file://)
