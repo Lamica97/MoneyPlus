@@ -1808,11 +1808,32 @@ window.downloadSlip = function() {
             transform: 'scale(1)',
             transformOrigin: 'top left'
         }
-    }).then(dataUrl => {
-        const link = document.createElement('a');
-        link.download = `Invoice_${studentName}.png`;
-        link.href = dataUrl;
-        link.click();
+    }).then(async dataUrl => {
+        try {
+            const res = await fetch(dataUrl);
+            const blob = await res.blob();
+            const file = new File([blob], 'Invoice.png', { type: 'image/png' });
+            
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: 'สลิปแจ้งยอดค่าเรียน',
+                });
+            } else {
+                const link = document.createElement('a');
+                link.download = 'Invoice.png';
+                link.href = dataUrl;
+                link.click();
+            }
+        } catch (err) {
+            console.error('Share failed', err);
+            if (err.name !== 'AbortError') {
+                const link = document.createElement('a');
+                link.download = 'Invoice.png';
+                link.href = dataUrl;
+                link.click();
+            }
+        }
         
         btn.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> บันทึกสำเร็จแล้ว`;
         setTimeout(() => {
