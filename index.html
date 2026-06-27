@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+        <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#151f1d">
+    <title>Money Plus+</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="manifest" href="./manifest.json">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="./icon-512.png">
+
+    <style>
+        body { 
+            font-family: 'Noto Sans Thai', sans-serif; 
+            background: radial-gradient(circle at 50% 0%, #1a2624 0%, #121212 70%);
+            color: #E0E0E0; 
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #121212; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(3, 218, 198, 0.3); }
+        
+        .glass-panel {
+            background: rgba(30, 30, 30, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        .glass-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #03DAC6;
+            box-shadow: 0 0 10px rgba(3, 218, 198, 0.2);
+        }
+        select.glass-input option {
+            background-color: #1E1E1E !important;
+            color: #FFFFFF !important;
+        }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+    <!-- Mobile Sidebar Overlay -->
+    
+
+    <aside id="sidebar" class="hidden md:flex w-64 glass-panel border-r border-white/5 flex-col justify-between z-10">
+        <div class="p-6">
+            <div class="flex items-center gap-3 mb-8">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#03DAC6] to-[#01bda6] flex items-center justify-center text-[#121212] font-bold text-lg shadow-[0_0_15px_rgba(3,218,198,0.4)]">M</div>
+                <h1 class="text-xl font-bold tracking-wide text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">Money Plus+</h1>
+            </div>
+            <nav class="space-y-1.5">
+                <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 text-[#03DAC6] font-medium border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] transition-all">
+                    <span class="text-lg">📊</span> แดชบอร์ดภาพรวม
+                </a>
+                <a href="#" onclick="switchTab('table')" id="nav-table" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white border border-transparent hover:border-white/5 transition-all">
+                    <span class="text-lg">🗂️</span> ตารางข้อมูลทั้งหมด
+                </a>
+                <a href="#" onclick="switchTab('unpaid')" id="nav-unpaid" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white border border-transparent hover:border-white/5 transition-all">
+                    <span class="text-lg">🧾</span> สรุปยอดค้างจ่าย
+                </a>
+                
+                
+            </nav>
+        </div>
+
+        <div class="p-6 border-t border-white/5">
+            <div class="flex items-center gap-2.5 text-xs text-[#03DAC6] bg-[#03DAC6]/10 px-3 py-2 rounded-xl border border-[#03DAC6]/20">
+                <div class="w-2 h-2 rounded-full bg-[#03DAC6] animate-pulse shadow-[0_0_8px_#03DAC6]"></div>
+                <span class="font-medium tracking-wide">คลาวด์ซิงค์แบบเรียลไทม์</span>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-y-auto relative z-0 pb-20 md:pb-0">
+        <header class="glass-panel border-b border-white/5 px-4 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 z-20">
+            <div class="flex items-center justify-between w-full sm:w-auto gap-4">
+                <div>
+                    <h2 id="page-title" class="text-xl font-bold text-white tracking-wide">แดชบอร์ดภาพรวม</h2>
+                    <p class="text-xs text-gray-400 mt-0.5">ระบบบริการจัดการรายรับผ่านคลาวด์จากทุกอุปกรณ์</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto" id="header-filters">
+                <select id="global-year" onchange="processData()" class="flex-1 sm:flex-none glass-input text-white px-3 py-2 sm:py-1.5 rounded-xl text-sm focus:outline-none cursor-pointer">
+                    <option value="2026" selected>ปี 2026</option>
+                    <option value="2025">ปี 2025</option>
+                </select>
+                <select id="global-month" onchange="processData()" class="flex-1 sm:flex-none glass-input text-white px-3 py-2 sm:py-1.5 rounded-xl text-sm focus:outline-none cursor-pointer">
+                    <option value="ทั้งหมด">ทุกเดือน</option>
+                    <option value="ม.ค.">มกราคม</option>
+                    <option value="ก.พ.">กุมภาพันธ์</option>
+                    <option value="มี.ค.">มีนาคม</option>
+                    <option value="เม.ย.">เมษายน</option>
+                    <option value="พ.ค." selected>พฤษภาคม</option>
+                    <option value="มิ.ย.">มิถุนายน</option>
+                    <option value="ก.ค.">กรกฎาคม</option>
+                    <option value="ส.ค.">สิงหาคม</option>
+                    <option value="ก.ย.">กันยายน</option>
+                    <option value="ต.ค.">ตุลาคม</option>
+                    <option value="พ.ย.">พฤศจิกายน</option>
+                    <option value="ธ.ค.">ธันวาคม</option>
+                </select>
+            </div>
+        </header>
+
+        <div class="p-6 space-y-6 flex-1">
+            <section id="section-dashboard" class="space-y-6">
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+                        <div class="absolute -right-4 -bottom-4 text-6xl opacity-5 transition-transform group-hover:scale-110 duration-300">💵</div>
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">ยอดเงินสด (เข้ามือ)</p>
+                        <h3 id="kpi-paid-cash" class="text-3xl font-bold text-[#03DAC6] mt-2 drop-shadow-[0_0_10px_rgba(3,218,198,0.2)]">฿0</h3>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+                        <div class="absolute -right-4 -bottom-4 text-6xl opacity-5 transition-transform group-hover:scale-110 duration-300">📱</div>
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">ยอดเงินโอน (เข้าบัญชี)</p>
+                        <h3 id="kpi-paid-transfer" class="text-3xl font-bold text-[#BB86FC] mt-2 drop-shadow-[0_0_10px_rgba(187,134,252,0.2)]">฿0</h3>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+                        <div class="absolute -right-4 -bottom-4 text-6xl opacity-5 transition-transform group-hover:scale-110 duration-300">⏳</div>
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">ยอดค้างชำระรวม</p>
+                        <h3 id="kpi-pending" class="text-3xl font-bold text-[#FF7597] mt-2 drop-shadow-[0_0_10px_rgba(255,117,151,0.2)]">฿0</h3>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl relative overflow-hidden group bg-white/5 border border-white/10">
+                        <div class="absolute -right-4 -bottom-4 text-6xl opacity-5 transition-transform group-hover:scale-110 duration-300">🎯</div>
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">รายได้คาดหวังรวม</p>
+                        <h3 id="kpi-projected" class="text-3xl font-bold text-white mt-2 drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">฿0</h3>
+                    </div>
+                </div>
+
+                <!-- Main Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-10 gap-6">
+                    <div class="glass-card p-5 sm:p-6 rounded-2xl lg:col-span-7 flex flex-col">
+                        <div class="flex justify-between items-center mb-5 gap-4">
+                            <h4 class="text-sm font-semibold text-white flex items-center gap-2">
+                                <span class="w-1.5 h-3.5 bg-[#03DAC6] rounded-full"></span> 📈 แนวโน้มรายได้แต่ละเดือน
+                            </h4>
+                        </div>
+                        <div class="relative w-full h-72 flex-1">
+                            <canvas id="monthlyTrendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-5 sm:p-6 rounded-2xl lg:col-span-3 flex flex-col">
+                        <div class="flex justify-between items-center mb-5 gap-4">
+                            <h4 class="text-sm font-semibold text-white flex items-center gap-2">
+                                <span class="w-1.5 h-3.5 bg-[#BB86FC] rounded-full"></span> 📊 รายได้รวมแต่ละปี
+                            </h4>
+                        </div>
+                        <div class="relative w-full h-72 flex-1">
+                            <canvas id="yearlyBarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary Charts & Insights -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass-card p-5 sm:p-6 rounded-2xl flex flex-col">
+                        <div class="flex justify-between items-center mb-5 gap-4">
+                            <h4 class="text-sm font-semibold text-white flex items-center gap-2">
+                                <span class="w-1.5 h-3.5 bg-[#03DAC6] rounded-full"></span> 🍩 สัดส่วนรายได้แยกตามกลุ่มเรียน
+                            </h4>
+                        </div>
+                        <div class="relative w-full h-64 flex-1 flex justify-center items-center">
+                            <canvas id="groupDonutChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-5 sm:p-6 rounded-2xl flex flex-col">
+                        <div class="flex justify-between items-center mb-5 gap-4">
+                            <h4 class="text-sm font-semibold text-white flex items-center gap-2">
+                                <span class="w-1.5 h-3.5 bg-[#FF7597] rounded-full"></span> 🚨 กลุ่มเรียนที่ค้างชำระสูงสุด
+                            </h4>
+                        </div>
+                        <div id="top-pending-groups" class="flex-1 space-y-3 overflow-y-auto max-h-64 pr-2">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-table" class="hidden space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <input type="text" id="table-search" oninput="processData()" placeholder="🔍 ค้นชื่อนักเรียน หรือกลุ่มเรียน..." class="w-full sm:w-80 glass-input text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none">
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <select id="table-method-filter" onchange="processData()" class="flex-1 sm:flex-none glass-input text-white px-3 py-2.5 rounded-xl text-sm focus:outline-none cursor-pointer">
+                            <option value="ทั้งหมด">ทุกช่องทาง</option>
+                            <option value="เงินสด">เงินสด</option>
+                            <option value="เงินโอน">เงินโอน</option>
+                            <option value="-">ไม่ระบุ</option>
+                        </select>
+                        <select id="table-status-filter" onchange="processData()" class="flex-1 sm:flex-none glass-input text-white px-3 py-2.5 rounded-xl text-sm focus:outline-none cursor-pointer">
+                            <option value="ทั้งหมด">สถานะทั้งหมด</option>
+                            <option value="จ่ายแล้ว">จ่ายแล้ว</option>
+                            <option value="ค้างจ่าย">ค้างจ่าย</option>
+                        </select>
+                        <button onclick="window.openNewRecordForm()" class="bg-gradient-to-r from-[#03DAC6] to-[#01bda6] hover:brightness-110 text-[#121212] text-sm font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow-[0_4px_15px_rgba(3,218,198,0.3)]">
+                            ➕ บันทึกค่าเรียน
+                        </button>
+                        <button onclick="window.openModal('section-settings')" title="ตั้งค่าระบบ" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white text-lg font-bold w-10 h-10 rounded-xl cursor-pointer transition-all flex items-center justify-center whitespace-nowrap">
+                            ⚙️
+                        </button>
+                        <button onclick="window.exportTableToCSV()" title="ดาวน์โหลด CSV" class="bg-[#BB86FC]/10 hover:bg-[#BB86FC]/20 border border-[#BB86FC]/30 text-[#BB86FC] text-lg font-bold w-10 h-10 rounded-xl cursor-pointer transition-all items-center justify-center whitespace-nowrap hidden sm:flex">
+                            📄
+                        </button>
+                    </div>
+
+                </div>
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+
+                            <thead>
+                                <tr class="bg-white/5 border-b border-white/5 text-gray-300 text-xs font-bold tracking-wide">
+                                    <th class="p-4">วันที่เรียน</th>
+                                    <th class="p-4">กลุ่มเรียน</th>
+                                    <th class="p-4">ระดับชั้น</th>
+                                    <th class="p-4">ชื่อนักเรียน</th>
+                                    <th class="p-4 text-right">ค่าเรียน</th>
+                                    <th class="p-4 text-center">ช่องทาง</th>
+                                    <th class="p-4 text-center">สถานะ</th>
+                                    <th class="p-4 w-24 text-center">การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-rows" class="text-sm text-gray-300 divide-y divide-white/5"></tbody>
+                        </table>
+                    </div>
+                    <div id="pagination-controls" class="flex flex-col sm:flex-row justify-between items-center gap-3 p-4 border-t border-white/5 text-gray-400 text-sm">
+                        <!-- JS injects controls here -->
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+            <section id="section-unpaid" class="hidden space-y-4">
+                <div class="glass-card p-4 sm:p-6 rounded-2xl border border-white/5 relative overflow-hidden">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">🧾 สรุปยอดค้างจ่ายรายบุคคล</h3>
+                            <p class="text-xs text-gray-400 mt-1">เลือกนักเรียนเพื่อดูรายการที่ค้างจ่ายและสร้างสลิป (Invoice)</p>
+                        </div>
+                        <div class="w-full sm:w-auto relative">
+                            <select id="unpaid-student-select" onchange="renderUnpaidPreview(this.value)" class="w-full sm:w-64 glass-input text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none appearance-none cursor-pointer">
+                                <option value="" class="bg-[#121212]">-- กรุณาเลือกนักเรียน --</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="unpaid-preview-container" class="hidden flex flex-col items-center gap-6">
+                        <div class="w-full max-w-md bg-white/5 border border-white/10 rounded-2xl p-6 relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#03DAC6] to-emerald-500"></div>
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h4 class="text-lg font-bold text-white" id="unpaid-preview-name">ชื่อนักเรียน</h4>
+                                    <p class="text-xs text-gray-400" id="unpaid-preview-grade">ระดับชั้น</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-gray-400 mb-1">ยอดรวมที่ต้องชำระ</p>
+                                    <p class="text-xl font-bold text-[#03DAC6]" id="unpaid-preview-total">฿0</p>
+                                </div>
+                            </div>
+                            <div class="space-y-2 mb-6 max-h-[300px] overflow-y-auto pr-2" id="unpaid-preview-list">
+                                <!-- list injected here -->
+                            </div>
+                            
+                            <button onclick="openSlipModal()" class="w-full bg-gradient-to-r from-[#03DAC6] to-[#01bda6] hover:from-[#01bda6] hover:to-[#03DAC6] text-[#121212] font-bold py-3 rounded-xl transition-all shadow-[0_4px_15px_rgba(3,218,198,0.3)] flex justify-center items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                สร้างรูปภาพสลิปแจ้งยอด
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="unpaid-empty-state" class="flex flex-col items-center justify-center py-12 text-gray-400">
+                        <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        <p>กรุณาเลือกชื่อนักเรียนเพื่อดูข้อมูล</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-form" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+                <div class="glass-card p-4 sm:p-6 rounded-2xl border-t-4 border-[#03DAC6] max-w-2xl w-full max-h-[90vh] overflow-y-auto relative scale-95 transition-transform duration-300 shadow-2xl">
+<button type="button" onclick="window.closeModal('section-form')" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-2 transition-all">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+</button>
+                    <div class="border-b border-white/5 pb-4 mb-5">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">📝 บันทึกค่าเรียนใหม่</h3>
+                        <p class="text-xs text-gray-400 mt-1">ระบบจะซิงค์ข้อมูลสถิติขึ้น Firebase คลาวด์ทันที</p>
+                    </div>
+                    
+                    <form id="student-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
+                        
+                        <!-- โซน 1: ข้อมูลนักเรียน -->
+                        <div class="bg-black/20 p-4 rounded-xl border border-white/5 relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-1 h-full bg-[#BB86FC]"></div>
+                            <h4 class="text-xs font-bold text-[#BB86FC] uppercase tracking-wider mb-3 ml-2">🧑‍🎓 ข้อมูลผู้เรียน</h4>
+                            
+                            <div class="grid grid-cols-1 gap-4 ml-2">
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-xs font-semibold text-gray-300">📅 วันที่เรียน</label>
+                                    <input type="date" id="form-date" required class="glass-input rounded-xl p-2.5 text-sm text-[#03DAC6] font-bold focus:outline-none cursor-pointer w-full bg-white/5 border border-white/10">
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-xs font-semibold text-gray-300">กลุ่มเรียน</label>
+                                    <select id="form-group" required class="glass-input rounded-xl p-2.5 text-sm text-white focus:outline-none cursor-pointer font-medium w-full">
+                                        <option value="" class="text-gray-400">-- เลือกระบุกลุ่มเรียน --</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div class="col-span-1 flex flex-col gap-1.5">
+                                        <label class="text-xs font-semibold text-gray-300">ระดับชั้น</label>
+                                        <select id="form-grade" onchange="window.updateFormNameDropdown()" required class="glass-input rounded-xl p-2.5 text-sm text-white focus:outline-none cursor-pointer font-medium">
+                                            <option value="" class="text-gray-400">- ระดับชั้น -</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-span-2 flex flex-col gap-1.5">
+                                        <label class="text-xs font-semibold text-gray-300">ชื่อนักเรียน</label>
+                                        <select id="form-name" required class="glass-input rounded-xl p-2.5 text-sm text-[#03DAC6] focus:outline-none cursor-pointer font-bold">
+                                            <option value="" class="text-gray-400">-- เลือกระดับชั้นก่อน --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- โซน 2: ข้อมูลการเงิน -->
+                        <div class="bg-black/20 p-4 rounded-xl border border-white/5 relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-1 h-full bg-[#03DAC6]"></div>
+                            <h4 class="text-xs font-bold text-[#03DAC6] uppercase tracking-wider mb-3 ml-2">💸 ข้อมูลการชำระเงิน</h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 ml-2">
+                                
+                                <div class="flex flex-col gap-1.5 justify-center">
+                                    <label class="text-xs font-semibold text-gray-300">จำนวนค่าเรียน (บาท)</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">฿</span>
+                                        <input type="number" id="form-amount" required placeholder="0" class="glass-input rounded-xl p-3 pl-8 text-base text-white focus:outline-none font-bold w-full bg-[#121212]/80 border-white/10 shadow-inner">
+                                    </div>
+                                    <div class="flex gap-2 mt-2">
+                                        <button type="button" onclick="setQuickAmount(200)" class="flex-1 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white py-1.5 rounded-lg text-xs font-bold border border-white/10 cursor-pointer transition-all">฿200</button>
+                                        <button type="button" onclick="setQuickAmount(250)" class="flex-1 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white py-1.5 rounded-lg text-xs font-bold border border-white/10 cursor-pointer transition-all">฿250</button>
+                                        <button type="button" onclick="setQuickAmount(500)" class="flex-1 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white py-1.5 rounded-lg text-xs font-bold border border-white/10 cursor-pointer transition-all">฿500</button>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col gap-4">
+                                    <!-- ช่องทางชำระเงิน (Segmented Control) -->
+                                    <div class="flex flex-col gap-1.5">
+                                        <label class="text-xs font-semibold text-gray-300">ช่องทางชำระเงิน</label>
+                                        <input type="hidden" id="form-payment-method" value="-">
+                                        <div class="flex bg-black/40 p-1 rounded-xl border border-white/5 relative">
+                                            <label class="flex-1 cursor-pointer">
+                                                <input type="radio" name="pay-method-ui" value="-" onchange="document.getElementById('form-payment-method').value=this.value" class="peer sr-only" checked>
+                                                <div class="text-center py-1.5 text-[11px] font-medium rounded-lg transition-all peer-checked:bg-white/10 peer-checked:text-white text-gray-500 hover:text-gray-300 shadow-sm">ไม่ระบุ</div>
+                                            </label>
+                                            <label class="flex-1 cursor-pointer">
+                                                <input type="radio" name="pay-method-ui" value="เงินสด" onchange="document.getElementById('form-payment-method').value=this.value" class="peer sr-only">
+                                                <div class="text-center py-1.5 text-[11px] font-medium rounded-lg transition-all peer-checked:bg-white/10 peer-checked:text-[#03DAC6] text-gray-500 hover:text-gray-300 shadow-sm">💵 เงินสด</div>
+                                            </label>
+                                            <label class="flex-1 cursor-pointer">
+                                                <input type="radio" name="pay-method-ui" value="เงินโอน" onchange="document.getElementById('form-payment-method').value=this.value" class="peer sr-only">
+                                                <div class="text-center py-1.5 text-[11px] font-medium rounded-lg transition-all peer-checked:bg-white/10 peer-checked:text-[#BB86FC] text-gray-500 hover:text-gray-300 shadow-sm">📱 เงินโอน</div>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- สถานะชำระเงิน (Segmented Control) -->
+                                    <div class="flex flex-col gap-1.5">
+                                        <label class="text-xs font-semibold text-gray-300">สถานะชำระเงิน</label>
+                                        <div class="flex bg-black/40 p-1 rounded-xl border border-white/5">
+                                            <label class="flex-1 cursor-pointer">
+                                                <input type="radio" name="form-status" value="จ่ายแล้ว" class="peer sr-only">
+                                                <div class="text-center py-2 text-xs font-bold rounded-lg transition-all peer-checked:bg-[#03DAC6]/20 peer-checked:text-[#03DAC6] peer-checked:border-[#03DAC6]/30 border border-transparent text-gray-500 hover:text-gray-300 shadow-sm">🟢 จ่ายแล้ว</div>
+                                            </label>
+                                            <label class="flex-1 cursor-pointer">
+                                                <input type="radio" name="form-status" value="ค้างจ่าย" class="peer sr-only" checked>
+                                                <div class="text-center py-2 text-xs font-bold rounded-lg transition-all peer-checked:bg-[#FF7597]/20 peer-checked:text-[#FF7597] peer-checked:border-[#FF7597]/30 border border-transparent text-gray-500 hover:text-gray-300 shadow-sm">🔴 ค้างจ่าย</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+
+                        <button id="form-submit-btn" type="submit" class="w-full bg-gradient-to-r from-[#03DAC6] to-[#01bda6] hover:brightness-110 text-[#121212] font-bold py-3.5 rounded-xl mt-4 cursor-pointer transition-all shadow-[0_4px_15px_rgba(3,218,198,0.3)] flex items-center justify-center gap-2 text-base">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                            <span>บันทึกและส่งข้อมูลเข้าสู่ระบบ</span>
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+
+            <section id="section-settings" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+<div class="glass-card p-6 rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto relative scale-95 transition-transform duration-300 shadow-2xl grid grid-cols-1 md:grid-cols-3 gap-6">
+<button type="button" onclick="window.closeModal('section-settings')" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-2 transition-all z-10">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+</button>
+                <div class="glass-card p-6 rounded-2xl flex flex-col md:col-span-1">
+                    <div>
+                        <h3 class="text-md font-bold text-white mb-1">🗂️ จัดการกลุ่มเรียนทั้งหมด</h3>
+                        <p class="text-xs text-gray-400 mb-4">เพิ่มหรือลบชื่อห้องเรียนและกลุ่มเวลาเรียนได้ที่นี่</p>
+                        
+                        <div class="flex flex-col gap-3 mb-5">
+                            <input type="text" id="settings-group-input" placeholder="ตัวอย่าง: วันจันทร์ หรือ ปิดเทอม" class="w-full glass-input text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none">
+                            <button onclick="handleAddGroup()" class="w-full bg-[#03DAC6] hover:bg-[#01bda6] text-[#121212] text-sm font-bold py-2.5 rounded-xl cursor-pointer transition-all">➕ เพิ่มกลุ่ม</button>
+                        </div>
+                        <label class="text-xs font-semibold text-[#03DAC6] block mb-3 uppercase tracking-wide">กลุ่มเรียนที่มีอยู่ในระบบขณะนี้:</label>
+                    </div>
+                    <div class="flex-1 overflow-y-auto max-h-[400px] bg-white/5 rounded-xl border border-white/5 p-3 space-y-2 pr-2" id="settings-group-list"></div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl flex flex-col md:col-span-2">
+                    <div>
+                        <h3 class="text-md font-bold text-white mb-1">🧑‍🏫 จัดการรายชื่อนักเรียนทั้งหมด</h3>
+                        <p class="text-xs text-gray-400 mb-4">เพิ่มหรือลบชื่อนักเรียนในระบบได้ที่นี่</p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-3 mb-5 p-4 bg-white/5 rounded-xl border border-white/5">
+                            <div class="flex-1">
+                                <label class="text-[10px] text-gray-400 font-medium ml-1 block mb-1">ระดับชั้น (พิมพ์หรือเลือก)</label>
+                                <input type="text" id="settings-student-grade" list="grade-list" placeholder="เช่น ม.4" class="w-full glass-input text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none">
+                                <datalist id="grade-list"></datalist>
+                            </div>
+                            <div class="flex-1">
+                                <label class="text-[10px] text-gray-400 font-medium ml-1 block mb-1">ชื่อเล่นนักเรียน</label>
+                                <input type="text" id="settings-student-name" placeholder="เช่น นนท์" class="w-full glass-input text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none">
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="handleAddStudent()" class="w-full sm:w-auto bg-[#03DAC6] hover:bg-[#01bda6] text-[#121212] text-sm font-bold px-6 py-2.5 rounded-xl cursor-pointer transition-all">➕ เพิ่มชื่อ</button>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-end mb-3">
+                            <label class="text-xs font-semibold text-[#03DAC6] uppercase tracking-wide">รายชื่อนักเรียนที่มีอยู่ในระบบขณะนี้:</label>
+                            <input type="text" id="settings-student-search" oninput="window.renderSettingsUI()" placeholder="🔍 ค้นหาชื่อนักเรียน..." class="glass-input text-white px-3 py-1.5 rounded-lg text-xs focus:outline-none w-48">
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto max-h-[400px] bg-white/2 rounded-xl border border-white/5 p-4" id="settings-student-list">
+                    </div>
+                </div>
+            </div></section>
+
+
+
+            <section id="section-settings" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+<div class="glass-card p-6 rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto relative scale-95 transition-transform duration-300 shadow-2xl grid grid-cols-1 md:grid-cols-3 gap-6">
+<button type="button" onclick="window.closeModal('section-settings')" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-2 transition-all z-10">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+</button>
+                <div class="glass-card p-6 rounded-2xl flex flex-col md:col-span-1">
+                    <div>
+                        <h3 class="text-md font-bold text-white mb-1">🗂️ จัดการกลุ่มเรียนทั้งหมด</h3>
+                        <p class="text-xs text-gray-400 mb-4">เพิ่มหรือลบชื่อห้องเรียนและกลุ่มเวลาเรียนได้ที่นี่</p>
+                        
+                        <div class="flex flex-col gap-3 mb-5">
+                            <input type="text" id="settings-group-input" placeholder="ตัวอย่าง: วันจันทร์ หรือ ปิดเทอม" class="w-full glass-input text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none">
+                            <button onclick="handleAddGroup()" class="w-full bg-[#03DAC6] hover:bg-[#01bda6] text-[#121212] text-sm font-bold py-2.5 rounded-xl cursor-pointer transition-all">➕ เพิ่มกลุ่ม</button>
+                        </div>
+                        <label class="text-xs font-semibold text-[#03DAC6] block mb-3 uppercase tracking-wide">กลุ่มเรียนที่มีอยู่ในระบบขณะนี้:</label>
+                    </div>
+                    <div class="flex-1 overflow-y-auto max-h-[400px] bg-white/5 rounded-xl border border-white/5 p-3 space-y-2 pr-2" id="settings-group-list"></div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl flex flex-col md:col-span-2">
+                    <div>
+                        <h3 class="text-md font-bold text-white mb-1">🧑‍🏫 จัดการรายชื่อนักเรียนทั้งหมด</h3>
+                        <p class="text-xs text-gray-400 mb-4">เพิ่มหรือลบชื่อนักเรียนในระบบได้ที่นี่</p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-3 mb-5 p-4 bg-white/5 rounded-xl border border-white/5">
+                            <div class="flex-1">
+                                <label class="text-[10px] text-gray-400 font-medium ml-1 block mb-1">ระดับชั้น (พิมพ์หรือเลือก)</label>
+                                <input type="text" id="settings-student-grade" list="grade-list" placeholder="เช่น ม.4" class="w-full glass-input text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none">
+                                <datalist id="grade-list"></datalist>
+                            </div>
+                            <div class="flex-1">
+                                <label class="text-[10px] text-gray-400 font-medium ml-1 block mb-1">ชื่อเล่นนักเรียน</label>
+                                <input type="text" id="settings-student-name" placeholder="เช่น นนท์" class="w-full glass-input text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none">
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="window.handleAddStudent()" class="w-full sm:w-auto bg-[#03DAC6] hover:bg-[#01bda6] text-[#121212] text-sm font-bold px-6 py-2.5 rounded-xl cursor-pointer transition-all">➕ เพิ่มชื่อ</button>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-end mb-3">
+                            <label class="text-xs font-semibold text-[#03DAC6] uppercase tracking-wide">รายชื่อนักเรียนที่มีอยู่ในระบบขณะนี้:</label>
+                            <input type="text" id="settings-student-search" oninput="window.renderSettingsUI()" placeholder="🔍 ค้นหาชื่อนักเรียน..." class="glass-input text-white px-3 py-1.5 rounded-lg text-xs focus:outline-none w-48">
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto max-h-[400px] bg-white/5 rounded-xl border border-white/5 p-4" id="settings-student-list">
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script type="module">
+window.switchTab = function(tabName) {
+    ['dashboard', 'table'].forEach(t => {
+        document.getElementById(`section-${t}`).classList.add('hidden');
+        document.getElementById(`nav-${t}`).classList.remove('bg-white/10', 'text-[#03DAC6]', 'font-medium', 'border-white/10', 'shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]');
+        document.getElementById(`nav-${t}`).classList.add('text-gray-400', 'border-transparent');
+    });
+    
+    document.getElementById(`section-${tabName}`).classList.remove('hidden');
+    document.getElementById(`nav-${tabName}`).classList.add('bg-white/10', 'text-[#03DAC6]', 'font-medium', 'border-white/10', 'shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]');
+    document.getElementById(`nav-${tabName}`).classList.remove('text-gray-400', 'border-transparent');
+    
+    const titles = { 'dashboard': 'แดชบอร์ดภาพรวม', 'table': 'ตารางข้อมูลทั้งหมด' };
+    document.getElementById('page-title').innerText = titles[tabName];
+};
+
+window.setQuickAmount = function(amt) { document.getElementById('form-amount').value = amt; };
+
+window.toggleChartVisibility = function(targetId, buttonEl) {
+    const chartContainer = document.getElementById(targetId);
+    if (chartContainer.classList.contains('hidden')) {
+        chartContainer.classList.remove('hidden');
+        buttonEl.innerText = '🙈 ซ่อน';
+    } else {
+        chartContainer.classList.add('hidden');
+        buttonEl.innerText = '👁️ แสดง';
+    }
+};
+
+window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('form-date').value = new Date().toISOString().split('T')[0];
+    const savedYear = localStorage.getItem('moneyplus_year');
+    const savedMonth = localStorage.getItem('moneyplus_month');
+    if (savedYear) document.getElementById('global-year').value = savedYear;
+    if (savedMonth) document.getElementById('global-month').value = savedMonth;
+});
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, remove, set, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+const firebaseConfig = {
+    apiKey: "AIzaSyCo1DAVwIjiHlyvf0nDVI1s0e7vxInGdlE",
+    authDomain: "moneyplus-68eba.firebaseapp.com",
+    databaseURL: "https://moneyplus-68eba-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "moneyplus-68eba",
+    storageBucket: "moneyplus-68eba.firebasestorage.app",
+    messagingSenderId: "113763700616",
+    appId: "1:113763700616:web:2f225d3515bfe332b5743d",
+    measurementId: "G-4NRW3GHG6X"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const recordsRef = ref(db, 'money_plus_records');
+const mappingRef = ref(db, 'money_plus_settings/studentMapping');
+const groupsRef = ref(db, 'money_plus_settings/groups');
+const studentsRef = ref(db, 'money_plus_settings/students');
+
+let rawDataset = {};
+window.groupsList = [];
+window.studentsList = [];
+window.editingRecordKey = null;
+Promise.all([get(groupsRef), get(studentsRef)]).then(([groupsSnap, studentsSnap]) => {
+    if (!groupsSnap.exists() && !studentsSnap.exists()) {
+        get(mappingRef).then(mappingSnap => {
+            let newGroups = [];
+            let newStudents = [];
+            if (mappingSnap.exists()) {
+                const mapping = mappingSnap.val();
+                newGroups = Object.keys(mapping);
+                let allStudents = [];
+                Object.values(mapping).forEach(arr => { allStudents = allStudents.concat(arr); });
+                newStudents = [...new Set(allStudents)].filter(s => s !== "นักเรียนใหม่ประจำห้อง");
+            } else {
+                newGroups = ["ม_4 จันทร์", "ม_4 ศุกร์", "ม_5 ศุกร์", "ม_3 พฤหัสบดี", "ปิดเทอม", "อื่น ๆ"];
+                newStudents = ["ม.4 เพลง", "ม.4 ปลื้ม", "ม.4 ภีม", "ม.4 กัปตัน", "ม.4 อัย", "ม.4 ปัณ", "ม.5 ปัณ", "ม.5 อัย", "ม.5 กัปตัน", "ม.3 พี", "ม.3 อิ้ง", "ม.3 ออกัส", "ม.4 เจมส์", "ม.5 ติวเตอร์", "ม.4 ทริกเกอร์"];
+            }
+            set(groupsRef, newGroups);
+            set(studentsRef, newStudents);
+        });
+    }
+});
+
+onValue(groupsRef, (snapshot) => {
+    window.groupsList = snapshot.val() || [];
+    window.renderSettingsUI();
+    window.updateFormDropdowns();
+});
+
+onValue(studentsRef, (snapshot) => {
+    const data = snapshot.val() || [];
+    let needsMigration = false;
+    window.studentsList = data.map(item => {
+        if (typeof item === 'string') {
+            needsMigration = true;
+            const parts = item.split(' ');
+            return { grade: parts[0] || '', name: parts.slice(1).join(' ') };
+        }
+        return item;
+    });
+    if (needsMigration) {
+        set(studentsRef, window.studentsList);
+    }
+    window.renderSettingsUI();
+    window.updateFormDropdowns();
+});
+
+onValue(recordsRef, (snapshot) => {
+    rawDataset = snapshot.val() || {};
+    window.processData();
+});
+
+window.processData = function() {
+    const activeYear = document.getElementById('global-year').value;
+    const activeMonth = document.getElementById('global-month').value;
+    const tableSearch = document.getElementById('table-search').value.toLowerCase();
+    const tableStatus = document.getElementById('table-status-filter').value;
+    const tableMethod = document.getElementById('table-method-filter').value;
+
+    localStorage.setItem('moneyplus_year', activeYear);
+    localStorage.setItem('moneyplus_month', activeMonth);
+
+    let paidTotal = 0, paidCashTotal = 0, paidTransferTotal = 0, pendingTotal = 0, count = 0;
+    
+    let groupStats = {}; 
+    let studentStats = {}; 
+    let yearStats = { "2025": { paid: 0, pending: 0 }, "2026": { paid: 0, pending: 0 } };
+    
+    const monthsOrder = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+    let monthStats = {};
+    monthsOrder.forEach(m => { monthStats[m] = { paid: 0, pending: 0 }; });
+
+    window.filteredItemsForExport = [];
+    let matchingRowsHTML = [];
+
+    let items = [];
+    if (Array.isArray(rawDataset)) {
+        items = rawDataset.map((item, index) => item ? { _key: index.toString(), actualIndex: index, ...item } : null).filter(item => item !== null);
+    } else {
+        items = Object.keys(rawDataset).map(key => ({ _key: key, actualIndex: key, ...rawDataset[key] }));
+    }
+    items.reverse(); 
+
+    items.forEach(item => {
+        let itemDate = '', itemYear = '', itemMonth = '', itemGroup = '', itemName = '', itemGrade = '', itemStatus = '', itemPaymentMethod = '', itemAmount = 0;
+
+        if (item[0] !== undefined && item[1] !== undefined && item[2] !== undefined) {
+            itemAmount = parseInt(item[0]) || 0;
+            itemDate = String(item[1] || '').trim();
+            itemGroup = String(item[2] || '').trim();
+            itemMonth = String(item[3] || '').trim();
+            const rawName = String(item[4] || '').trim();
+            const parts = rawName.split(' ');
+            if (parts.length === 1) {
+                itemGrade = '';
+                itemName = rawName;
+            } else {
+                itemGrade = parts[0] || '';
+                itemName = parts.slice(1).join(' ');
+            }
+            itemStatus = String(item[5] || '').trim();
+            itemYear = String(item[6] || '').trim();
+            itemPaymentMethod = String(item.paymentMethod || item[7] || '-').trim();
+        } else {
+            itemYear = String(item.year || item.Year || '').trim();
+            itemMonth = String(item.month || item.Month || '').trim();
+            itemDate = String(item.date || item.Date || '').trim();
+            itemGroup = String(item.group || item.Group || '').trim();
+            itemStatus = String(item.status || item.Status || '').trim();
+            itemPaymentMethod = String(item.paymentMethod || '-').trim();
+            const rawAmount = item.amount !== undefined ? item.amount : (item.Amount !== undefined ? item.Amount : 0);
+            itemAmount = parseInt(rawAmount) || 0;
+            
+            const rawName = String(item.name || item.Name || item['name '] || item['Name '] || '').trim();
+            if (item.grade && item.grade !== '') {
+                itemGrade = String(item.grade).trim();
+                itemName = rawName;
+            } else {
+                const parts = rawName.split(' ');
+                if (parts.length === 1) {
+                    itemGrade = '';
+                    itemName = rawName;
+                } else {
+                    itemGrade = parts[0] || '';
+                    itemName = parts.slice(1).join(' ');
+                }
+            }
+        }
+
+        if (yearStats[itemYear]) {
+            if (itemStatus === "จ่ายแล้ว") yearStats[itemYear].paid += itemAmount;
+            else if (itemStatus === "ค้างจ่าย") yearStats[itemYear].pending += itemAmount;
+        }
+
+        if (itemYear === activeYear) {
+            if (monthStats[itemMonth]) {
+                if (itemStatus === "จ่ายแล้ว") monthStats[itemMonth].paid += itemAmount;
+                else if (itemStatus === "ค้างจ่าย") monthStats[itemMonth].pending += itemAmount;
+            }
+        }
+
+        const matchYear = itemYear === activeYear;
+        const matchMonth = activeMonth === "ทั้งหมด" || itemMonth === activeMonth;
+        
+        if (matchYear && matchMonth) {
+            count++;
+            if (itemStatus === "จ่ายแล้ว") {
+                paidTotal += itemAmount;
+                if (itemPaymentMethod === 'เงินสด') paidCashTotal += itemAmount;
+                else if (itemPaymentMethod === 'เงินโอน') paidTransferTotal += itemAmount;
+            } else if (itemStatus === "ค้างจ่าย") {
+                pendingTotal += itemAmount;
+            }
+
+            const displayGroup = itemGroup ? itemGroup.replace(/_/g, ' ') : 'ไม่ระบุกลุ่ม';
+            if (!groupStats[displayGroup]) {
+                groupStats[displayGroup] = { paid: 0, pending: 0 };
+            }
+            if (itemStatus === "จ่ายแล้ว") groupStats[displayGroup].paid += itemAmount;
+            else if (itemStatus === "ค้างจ่าย") groupStats[displayGroup].pending += itemAmount;
+
+            const fullStudentName = itemGrade ? `${itemGrade} ${itemName}` : (itemName || 'ไม่ระบุชื่อ');
+            const displayName = itemName || 'ไม่ระบุชื่อ';
+            if (!studentStats[fullStudentName]) {
+                studentStats[fullStudentName] = { paid: 0, pending: 0 };
+            }
+            if (itemStatus === "จ่ายแล้ว") studentStats[fullStudentName].paid += itemAmount;
+            else if (itemStatus === "ค้างจ่าย") studentStats[fullStudentName].pending += itemAmount;
+
+            const matchSearch = (itemName + ' ' + itemGrade + ' ' + itemGroup).toLowerCase().includes(tableSearch);
+            const matchStatus = tableStatus === "ทั้งหมด" || itemStatus === tableStatus;
+            const matchMethod = tableMethod === "ทั้งหมด" || itemPaymentMethod === tableMethod;
+
+            if (matchSearch && matchStatus && matchMethod) {
+                window.filteredItemsForExport.push({
+                    date: itemDate,
+                    group: displayGroup,
+                    grade: itemGrade,
+                    name: displayName,
+                    amount: itemAmount,
+                    paymentMethod: itemPaymentMethod,
+                    status: itemStatus
+                });
+
+                const badgeClass = itemStatus === "จ่ายแล้ว" ? "bg-[#0D533A]/80 text-[#03DAC6] border border-[#03DAC6]/20" : "bg-[#5C1D24]/80 text-[#FF7597] border border-[#FF7597]/20";
+                
+                let paymentBadgeHTML = `<span class="text-gray-500 font-medium">-</span>`;
+                if (itemPaymentMethod === 'เงินสด') {
+                    paymentBadgeHTML = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#03DAC6]/10 text-[#03DAC6] border border-[#03DAC6]/20 font-bold shadow-sm whitespace-nowrap">💵 เงินสด</span>`;
+                } else if (itemPaymentMethod === 'เงินโอน') {
+                    paymentBadgeHTML = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#BB86FC]/10 text-[#BB86FC] border border-[#BB86FC]/20 font-bold shadow-sm whitespace-nowrap">📱 เงินโอน</span>`;
+                }
+
+                matchingRowsHTML.push(`
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="p-4 font-medium">${itemDate}</td>
+                        <td class="p-4 text-gray-400 font-medium">${displayGroup}</td>
+                        <td class="p-4 text-gray-400 font-medium">${itemGrade}</td>
+                        <td class="p-4 font-semibold text-white">${displayName}</td>
+                        <td class="p-4 text-right font-bold text-white font-mono">฿${itemAmount.toLocaleString()}</td>
+                        <td class="p-4 text-center text-xs">
+                            <button onclick="window.togglePaymentMethod('${item.actualIndex}', '${itemPaymentMethod}')" title="คลิกเพื่อเปลี่ยนช่องทาง" class="cursor-pointer hover:scale-105 active:scale-95 transition-all">
+                                ${paymentBadgeHTML}
+                            </button>
+                        </td>
+                        <td class="p-4 text-center">
+                            <button onclick="window.toggleStatus('${item.actualIndex}', '${itemStatus}')" title="คลิกเพื่อสลับสถานะทันที" class="px-2.5 py-1 rounded-full text-xs font-bold shadow-sm ${badgeClass} cursor-pointer hover:scale-105 active:scale-95 select-none transition-all">
+                                ${itemStatus}
+                            </button>
+                        </td>
+                        <td class="p-4 text-center">
+                            <div class="flex justify-center gap-2">
+                                <button onclick="window.handleEditRecord('${item._key}')" class="px-2.5 py-1 text-xs font-semibold bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white rounded-lg cursor-pointer transition-all">
+                                    ✏️ แก้ไข
+                                </button>
+                                <button onclick="window.deleteRecord('${item._key}', '${fullStudentName}')" class="px-2.5 py-1 text-xs font-semibold bg-red-500/10 border border-red-500/20 text-[#FF7597] hover:bg-red-500 hover:text-white rounded-lg cursor-pointer transition-all">
+                                    🗑️ ลบ
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            }
+        }
+    });
+
+    window.matchingRowsHTML = matchingRowsHTML;
+    window.renderTablePage(1);
+
+    // Update KPI Cards
+    const kpiPaidCash = document.getElementById('kpi-paid-cash');
+    if (kpiPaidCash) kpiPaidCash.innerText = `฿${paidCashTotal.toLocaleString()}`;
+    
+    const kpiPaidTransfer = document.getElementById('kpi-paid-transfer');
+    if (kpiPaidTransfer) kpiPaidTransfer.innerText = `฿${paidTransferTotal.toLocaleString()}`;
+    
+    const kpiPending = document.getElementById('kpi-pending');
+    if (kpiPending) kpiPending.innerText = `฿${pendingTotal.toLocaleString()}`;
+    
+    const kpiProjected = document.getElementById('kpi-projected');
+    if (kpiProjected) kpiProjected.innerText = `฿${(paidTotal + pendingTotal).toLocaleString()}`;
+
+    window.renderDashboardCharts(monthStats, yearStats, groupStats, activeYear);
+};
+
+let chartInstances = {};
+window.renderDashboardCharts = function(monthStats, yearStats, groupStats, activeYear) {
+    Chart.defaults.color = '#9ca3af';
+    Chart.defaults.font.family = "'Noto Sans Thai', sans-serif";
+
+    // 1. Monthly Trend Chart (Line)
+    const ctxMonthly = document.getElementById('monthlyTrendChart');
+    if (ctxMonthly) {
+        if (chartInstances.monthly) chartInstances.monthly.destroy();
+        const monthsOrder = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+        const paidData = monthsOrder.map(m => monthStats[m].paid);
+        const pendingData = monthsOrder.map(m => monthStats[m].pending);
+        
+        chartInstances.monthly = new Chart(ctxMonthly, {
+            type: 'line',
+            data: {
+                labels: monthsOrder,
+                datasets: [
+                    {
+                        label: 'ยอดรายรับ (จ่ายแล้ว)',
+                        data: paidData,
+                        borderColor: '#03DAC6',
+                        backgroundColor: 'rgba(3, 218, 198, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'ยอดค้างชำระ',
+                        data: pendingData,
+                        borderColor: '#FF7597',
+                        backgroundColor: 'rgba(255, 117, 151, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', align: 'end', labels: { boxWidth: 12, usePointStyle: true } },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    // 2. Yearly Revenue Chart (Bar)
+    const ctxYearly = document.getElementById('yearlyBarChart');
+    if (ctxYearly) {
+        if (chartInstances.yearly) chartInstances.yearly.destroy();
+        const years = Object.keys(yearStats).sort();
+        const yearPaidData = years.map(y => yearStats[y].paid);
+
+        chartInstances.yearly = new Chart(ctxYearly, {
+            type: 'bar',
+            data: {
+                labels: years,
+                datasets: [{
+                    label: 'ยอดรายรับสุทธิ (จ่ายแล้ว)',
+                    data: yearPaidData,
+                    backgroundColor: 'rgba(187, 134, 252, 0.8)',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    // 3. Group Revenue (Donut)
+    const ctxGroupDonut = document.getElementById('groupDonutChart');
+    if (ctxGroupDonut) {
+        if (chartInstances.groupDonut) chartInstances.groupDonut.destroy();
+        
+        // Filter out groups with 0 paid
+        const validGroups = Object.keys(groupStats).filter(g => groupStats[g].paid > 0);
+        // Sort by paid amount descending
+        validGroups.sort((a, b) => groupStats[b].paid - groupStats[a].paid);
+        
+        const groupLabels = validGroups;
+        const groupData = validGroups.map(g => groupStats[g].paid);
+        
+        const colors = ['#03DAC6', '#BB86FC', '#FF7597', '#FFB74D', '#4FC3F7', '#81C784', '#BA68C8', '#FF8A65'];
+
+        if (groupData.length > 0) {
+            chartInstances.groupDonut = new Chart(ctxGroupDonut, {
+                type: 'doughnut',
+                data: {
+                    labels: groupLabels,
+                    datasets: [{
+                        data: groupData,
+                        backgroundColor: colors.slice(0, groupData.length),
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, usePointStyle: true, color: '#e5e7eb' } }
+                    }
+                }
+            });
+        }
+    }
+
+    // 4. Top Pending Groups List
+    const pendingListEl = document.getElementById('top-pending-groups');
+    if (pendingListEl) {
+        const pendingGroups = Object.keys(groupStats).filter(g => groupStats[g].pending > 0);
+        pendingGroups.sort((a, b) => groupStats[b].pending - groupStats[a].pending);
+
+        if (pendingGroups.length === 0) {
+            pendingListEl.innerHTML = `<div class="flex items-center justify-center h-full"><p class="text-gray-500 text-sm">ไม่มีกลุ่มเรียนที่ค้างชำระ 🎉</p></div>`;
+        } else {
+            let html = '';
+            pendingGroups.slice(0, 5).forEach((g, index) => {
+                const amount = groupStats[g].pending;
+                html += `
+                    <div class="flex justify-between items-center p-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-[#FF7597]/20 text-[#FF7597] flex items-center justify-center font-bold text-sm">
+                                ${index + 1}
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-white">${g}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-bold text-[#FF7597]">฿${amount.toLocaleString()}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            pendingListEl.innerHTML = html;
+        }
+    }
+};
+
+window.currentPage = 1;
+window.itemsPerPage = 50;
+
+window.renderTablePage = function(page) {
+    const tbody = document.getElementById('table-rows');
+    const paginationControls = document.getElementById('pagination-controls');
+    if (!tbody || !paginationControls) return;
+
+    window.currentPage = page;
+    const totalItems = window.matchingRowsHTML.length;
+    const totalPages = Math.ceil(totalItems / window.itemsPerPage) || 1;
+
+    const startIdx = (page - 1) * window.itemsPerPage;
+    const endIdx = startIdx + window.itemsPerPage;
+
+    tbody.innerHTML = window.matchingRowsHTML.slice(startIdx, endIdx).join('');
+
+    let filteredPaidTotal = 0;
+    let filteredPendingTotal = 0;
+    if (window.filteredItemsForExport) {
+        window.filteredItemsForExport.forEach(item => {
+            if (item.status === 'จ่ายแล้ว') filteredPaidTotal += item.amount;
+            else if (item.status === 'ค้างจ่าย') filteredPendingTotal += item.amount;
+        });
+    }
+
+    let summaryHTML = `<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs font-medium">`;
+    summaryHTML += `<span class="text-gray-400">แสดงผล ${totalItems > 0 ? startIdx + 1 : 0} ถึง ${Math.min(endIdx, totalItems)} จากทั้งหมด ${totalItems} รายการ</span>`;
+    if (totalItems > 0 && (filteredPaidTotal > 0 || filteredPendingTotal > 0)) {
+        summaryHTML += `<span class="hidden sm:inline text-gray-500">|</span>`;
+        summaryHTML += `<div class="flex gap-3">`;
+        if (filteredPaidTotal > 0) summaryHTML += `<span class="text-[#03DAC6]">ยอดจ่ายแล้ว: ฿${filteredPaidTotal.toLocaleString()}</span>`;
+        if (filteredPendingTotal > 0) summaryHTML += `<span class="text-[#FF7597]">ยอดค้างชำระ: ฿${filteredPendingTotal.toLocaleString()}</span>`;
+        summaryHTML += `</div>`;
+    }
+    summaryHTML += `</div>`;
+
+    let paginationHTML = `
+        ${summaryHTML}
+        <div class="flex gap-2 items-center">
+    `;
+
+    if (page > 1) {
+        paginationHTML += `<button onclick="window.renderTablePage(${page - 1})" class="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg transition-all cursor-pointer">◀ ก่อนหน้า</button>`;
+    } else {
+        paginationHTML += `<button disabled class="px-3 py-1 bg-white/5 text-gray-600 rounded-lg cursor-not-allowed">◀ ก่อนหน้า</button>`;
+    }
+
+    paginationHTML += `<span class="px-3 py-1 font-bold text-white">หน้า ${page} / ${totalPages}</span>`;
+
+    if (page < totalPages) {
+        paginationHTML += `<button onclick="window.renderTablePage(${page + 1})" class="px-3 py-1 bg-[#03DAC6]/20 text-[#03DAC6] hover:bg-[#03DAC6] hover:text-black rounded-lg transition-all cursor-pointer">ถัดไป ▶</button>`;
+    } else {
+        paginationHTML += `<button disabled class="px-3 py-1 bg-white/5 text-gray-600 rounded-lg cursor-not-allowed">ถัดไป ▶</button>`;
+    }
+
+    paginationHTML += `</div>`;
+    paginationControls.innerHTML = paginationHTML;
+};
+
+window.renderSettingsUI = function() {
+    const groupListDiv = document.getElementById('settings-group-list');
+    groupListDiv.innerHTML = '';
+
+    window.groupsList.forEach((groupKey, index) => {
+        const cleanName = groupKey.replace(/_/g, ' ');
+        groupListDiv.innerHTML += `
+            <div class="flex justify-between items-center bg-white/5 border border-white/10 p-2.5 rounded-xl hover:bg-white/10 transition-all group sortable-item gap-2" data-id="${groupKey}">
+                <div class="flex items-center gap-2 flex-1 min-w-0">
+                    <span class="cursor-grab drag-handle text-gray-500 hover:text-white text-lg px-1 flex-shrink-0" title="ลากเพื่อจัดเรียง">☰</span>
+                    <span class="text-sm font-bold text-gray-200 group-hover:text-white transition-colors truncate" title="${cleanName}">📚 ${cleanName}</span>
+                </div>
+                <div class="flex gap-1.5 flex-shrink-0">
+                    <button onclick="window.handleEditGroup(${index}, '${groupKey}')" class="text-sm bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white w-8 h-8 rounded-lg transition-all cursor-pointer flex items-center justify-center shadow-sm" title="แก้ไข">✏️</button>
+                    <button onclick="window.handleDeleteGroup(${index}, '${groupKey}')" class="text-sm bg-red-500/10 border border-red-500/20 text-[#FF7597] hover:bg-red-500 hover:text-white w-8 h-8 rounded-lg transition-all cursor-pointer flex items-center justify-center shadow-sm" title="ลบ">🗑️</button>
+                </div>
+            </div>`;
+    });
+
+    if (window.groupSortable) {
+        window.groupSortable.destroy();
+    }
+    window.groupSortable = new Sortable(groupListDiv, {
+        handle: '.drag-handle',
+        animation: 150,
+        ghostClass: 'opacity-50',
+        onEnd: function () {
+            window.handleReorderGroups();
+        }
+    });
+
+    const studentListDiv = document.getElementById('settings-student-list');
+    const searchInput = document.getElementById('settings-student-search');
+    const searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    
+    studentListDiv.innerHTML = '';
+
+    const groupedStudents = {};
+    const uniqueGrades = new Set();
+
+    window.studentsList.forEach((student, index) => {
+        const grade = student.grade || 'ไม่ระบุระดับชั้น';
+        uniqueGrades.add(grade);
+
+        if (searchQuery) {
+            const fullName = `${grade} ${student.name}`.toLowerCase();
+            if (!fullName.includes(searchQuery)) return;
+        }
+
+        if (!groupedStudents[grade]) {
+            groupedStudents[grade] = [];
+        }
+        groupedStudents[grade].push({ ...student, originalIndex: index });
+    });
+
+    const datalist = document.getElementById('grade-list');
+    if (datalist) {
+        datalist.innerHTML = Array.from(uniqueGrades).map(g => `<option value="${g}"></option>`).join('');
+    }
+
+    const sortedGrades = Object.keys(groupedStudents).sort();
+    
+    if (sortedGrades.length === 0) {
+        studentListDiv.innerHTML = `<p class="text-center text-sm text-gray-500 py-8">ไม่พบรายชื่อนักเรียนที่ตรงกับการค้นหา</p>`;
+    }
+
+    sortedGrades.forEach(grade => {
+        let html = `
+            <div class="mb-5 last:mb-0">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="w-1.5 h-3.5 bg-[#BB86FC] rounded-full"></span>
+                    <span class="text-xs font-bold text-[#BB86FC] uppercase tracking-wider">${grade}</span>
+                </div>
+                <div class="flex flex-wrap gap-2.5 ml-3">
+        `;
+        
+        groupedStudents[grade].forEach(student => {
+            const displayName = student.grade ? `${student.grade} ${student.name}` : student.name;
+            html += `
+                <div class="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-xl text-sm text-gray-300 transition-all border border-white/5 group shadow-sm">
+                    <span class="font-medium group-hover:text-white">👤 ${student.name}</span>
+                    <button onclick="window.handleDeleteStudent(${student.originalIndex}, '${displayName}')" class="text-gray-500 hover:text-[#FF7597] hover:bg-red-500/10 rounded-full w-5 h-5 flex items-center justify-center transition-all" title="ลบชื่อ ${student.name}">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>`;
+        });
+
+        html += `
+                </div>
+            </div>
+        `;
+        studentListDiv.innerHTML += html;
+    });
+};
+
+window.updateFormDropdowns = function() {
+    const formGroupSelect = document.getElementById('form-group');
+    const currentGroup = formGroupSelect.value;
+    formGroupSelect.innerHTML = '<option value="">-- เลือกกลุ่มเรียน --</option>';
+    window.groupsList.forEach(groupKey => {
+        formGroupSelect.innerHTML += `<option value="${groupKey}">${groupKey.replace(/_/g, ' ')}</option>`;
+    });
+    if (currentGroup) formGroupSelect.value = currentGroup;
+
+    const formGradeSelect = document.getElementById('form-grade');
+    const currentGrade = formGradeSelect.value;
+    formGradeSelect.innerHTML = '<option value="">-- เลือกระดับชั้น --</option>';
+    
+    const uniqueGrades = [...new Set(window.studentsList.map(s => s.grade).filter(Boolean))];
+    uniqueGrades.forEach(grade => {
+        formGradeSelect.innerHTML += `<option value="${grade}" class="text-white">${grade}</option>`;
+    });
+    if (currentGrade && uniqueGrades.includes(currentGrade)) {
+        formGradeSelect.value = currentGrade;
+    }
+    
+    window.updateFormNameDropdown();
+};
+
+window.updateFormNameDropdown = function() {
+    const selectedGrade = document.getElementById('form-grade').value;
+    const formNameSelect = document.getElementById('form-name');
+    const currentName = formNameSelect.value;
+    
+    formNameSelect.innerHTML = '<option value="" class="text-gray-400">-- เลือกชื่อนักเรียน --</option>';
+    
+    if (selectedGrade) {
+        const filteredStudents = window.studentsList.filter(s => s.grade === selectedGrade);
+        filteredStudents.forEach(student => {
+            formNameSelect.innerHTML += `<option value="${student.name}" class="text-white">${student.name}</option>`;
+        });
+        if (currentName && filteredStudents.some(s => s.name === currentName)) {
+            formNameSelect.value = currentName;
+        }
+    } else {
+        formNameSelect.innerHTML = '<option value="" class="text-gray-400">-- เลือกระดับชั้นก่อน --</option>';
+    }
+};
+
+window.handleAddGroup = function() {
+    const groupInput = document.getElementById('settings-group-input');
+    const newGroupName = groupInput.value.trim();
+    if (!newGroupName) return alert("กรุณาพิมพ์ชื่อกลุ่มเรียนที่ต้องการเพิ่มด้วยครับ");
+    
+    const firebaseKey = newGroupName.replace(/[\.\s\#\$\[\]]/g, '_');
+    if(window.groupsList.includes(firebaseKey)) return alert("มีกลุ่มเรียนนี้ในระบบคลาวด์แล้วครับ");
+
+    const newList = [...window.groupsList, firebaseKey];
+    set(ref(db, `money_plus_settings/groups`), newList)
+        .then(() => {
+            groupInput.value = '';
+            alert("🎉 เพิ่มกลุ่มเรียนใหม่เข้าสู่คลาวด์สำเร็จ");
+        });
+};
+
+window.handleDeleteGroup = function(index, groupKey) {
+    const display = groupKey.replace(/_/g, ' ');
+    if (confirm(`คุณต้องการลบกลุ่มเรียน "${display}" ออกจากระบบใช่หรือไม่?\n(ประวัติการเก็บเงินในตารางจะไม่หายไป)`)) {
+        let currentList = [...window.groupsList];
+        currentList.splice(index, 1);
+        set(ref(db, `money_plus_settings/groups`), currentList)
+            .then(() => alert("ลบกลุ่มเรียนออกเรียบร้อยแล้ว"));
+    }
+};
+
+window.handleEditGroup = function(index, oldGroupKey) {
+    const oldDisplay = oldGroupKey.replace(/_/g, ' ');
+    const newDisplay = prompt(`แก้ไขชื่อกลุ่มเรียน "${oldDisplay}":`, oldDisplay);
+    
+    if (newDisplay === null) return; // User cancelled
+    
+    const newNameTrimmed = newDisplay.trim();
+    if (!newNameTrimmed) return alert("ชื่อกลุ่มเรียนไม่สามารถเป็นค่าว่างได้ครับ");
+    
+    const newGroupKey = newNameTrimmed.replace(/[\.\s\#\$\[\]]/g, '_');
+    
+    if (newGroupKey === oldGroupKey) return; // No change
+    if (window.groupsList.includes(newGroupKey)) return alert("มีชื่อกลุ่มเรียนนี้ในระบบคลาวด์แล้วครับ โปรดใช้ชื่ออื่น");
+
+    if (confirm(`คุณต้องการเปลี่ยนชื่อกลุ่มจาก "${oldDisplay}" เป็น "${newNameTrimmed}" ใช่หรือไม่?\n(ระบบจะทำการอัปเดตข้อมูลนักเรียนเก่าทั้งหมดที่ใช้กลุ่มนี้ให้เป็นชื่อใหม่ด้วย)`)) {
+        
+        // 1. Update the groups list
+        let currentList = [...window.groupsList];
+        currentList[index] = newGroupKey;
+        
+        const updates = {};
+        updates[`money_plus_settings/groups`] = currentList;
+        
+        // 2. Update all records that used the old group
+        if (typeof rawDataset !== 'undefined' && rawDataset) {
+            Object.keys(rawDataset).forEach(key => {
+                const record = rawDataset[key];
+                if (record && record.group === oldGroupKey) {
+                    updates[`money_plus_records/${key}/group`] = newGroupKey;
+                }
+            });
+        }
+
+        // Apply all updates atomically
+        update(ref(db), updates)
+            .then(() => alert(`เปลี่ยนชื่อกลุ่มเรียนเป็น "${newNameTrimmed}" และอัปเดตข้อมูลเก่าเรียบร้อยแล้ว!`))
+            .catch(err => alert("เกิดข้อผิดพลาดในการอัปเดตข้อมูล: " + err.message));
+    }
+};
+
+window.handleReorderGroups = function() {
+    const groupListDiv = document.getElementById('settings-group-list');
+    const items = groupListDiv.querySelectorAll('.sortable-item');
+    
+    let newList = [];
+    items.forEach(item => {
+        newList.push(item.getAttribute('data-id'));
+    });
+    
+    // Only update if order actually changed
+    if (JSON.stringify(newList) !== JSON.stringify(window.groupsList)) {
+        set(ref(db, `money_plus_settings/groups`), newList)
+            .then(() => console.log("Group order saved"))
+            .catch(err => console.error("Error saving group order:", err));
+    }
+};
+
+window.handleAddStudent = function() {
+    const gradeInput = document.getElementById('settings-student-grade');
+    const nameInput = document.getElementById('settings-student-name');
+    const grade = gradeInput.value.trim();
+    const name = nameInput.value.trim();
+
+    if (!grade) return alert("กรุณากรอกระดับชั้นด้วยครับ");
+    if (!name) return alert("กรุณากรอกชื่อเล่นนักเรียนด้วยครับ");
+
+    const isDuplicate = window.studentsList.some(s => s.grade === grade && s.name === name);
+    if(isDuplicate) return alert("มีรายชื่อนักเรียนคนนี้ในระดับชั้นนี้อยู่แล้วครับ");
+    
+    const newList = [...window.studentsList, { grade, name }];
+    set(ref(db, `money_plus_settings/students`), newList)
+        .then(() => {
+            gradeInput.value = '';
+            nameInput.value = '';
+        });
+};
+
+window.handleDeleteStudent = function(index, targetName) {
+    if(confirm(`ลบชื่อ "${targetName}" ออกจากระบบใช่ไหม?`)) {
+        let currentList = [...window.studentsList];
+        currentList.splice(index, 1);
+        set(ref(db, `money_plus_settings/students`), currentList);
+    }
+};
+
+window.deleteRecord = function(recordKey, studentName) {
+    if (confirm(`คุณต้องการลบข้อมูลรายรับเรียนของ "${studentName}" ใช่หรือไม่?\n(ข้อมูลจะถูกนำออกทันที)`)) {
+        remove(ref(db, `money_plus_records/${recordKey}`))
+            .then(() => alert("🗑️ ลบข้อมูลออกจากฐานข้อมูลเรียบร้อยแล้ว"));
+    }
+};
+
+window.toggleStatus = function(dbKey, currentStatus) {
+    const newStatus = currentStatus === "จ่ายแล้ว" ? "ค้างจ่าย" : "จ่ายแล้ว";
+    
+    // เช็คว่า dbKey เป็น Key อัตโนมัติของ Firebase (เช่น ขึ้นต้นด้วย -) หรือไม่
+    const isFirebasePushKey = typeof dbKey === 'string' && dbKey.startsWith('-');
+
+    if (!isFirebasePushKey && Array.isArray(rawDataset)) {
+        // กรณีเป็นข้อมูลแบบสไตล์ Array ดั้งเดิม (Index 0, 1, 2, ...)
+        const targetIdx = parseInt(dbKey);
+        const recordData = rawDataset[targetIdx];
+        
+        if (!recordData) {
+            alert("ไม่พบข้อมูลรายการนี้บนฐานข้อมูล หรือตำแหน่งข้อมูลคลาดเคลื่อน");
+            return;
+        }
+
+        // ตรวจสอบว่าโครงสร้างข้างในเป็นแบบย่อยอาร์เรย์ [amount, date, group, ...] หรือไม่
+        if (Array.isArray(recordData) || recordData.hasOwnProperty('5')) {
+            set(ref(db, `money_plus_records/${targetIdx}/5`), newStatus)
+                .catch((error) => alert("เกิดข้อผิดพลาดในการอัปเดต: " + error.message));
+        } else {
+            // หากข้างในถูกแปลงเป็น Object แล้วแต่ยังอยู่ใน Array หลัก
+            const targetRef = ref(db, `money_plus_records/${targetIdx}`);
+            let updatedData = {};
+            if (recordData.hasOwnProperty('status')) updatedData.status = newStatus;
+            if (recordData.hasOwnProperty('Status')) updatedData.Status = newStatus;
+            if (Object.keys(updatedData).length === 0) updatedData.status = newStatus;
+            
+            update(targetRef, updatedData)
+                .catch((error) => alert("เกิดข้อผิดพลาด: " + error.message));
+        }
+    } else {
+        // กรณีข้อมูลที่เป็นแบบ Object Key (ได้มาจากฟอร์มกรอก หรือ push)
+        const recordData = rawDataset[dbKey];
+        if (!recordData) {
+            alert("ไม่พบข้อมูลรายการนี้บนฐานข้อมูล");
+            return;
+        }
+        
+        const targetRef = ref(db, `money_plus_records/${dbKey}`);
+        
+        // ตรวจสอบโครงสร้างเพื่ออัปเดต Key คีย์ให้ถูกตัว (status หรือ Status หรือช่องที่ 5)
+        if (Array.isArray(recordData) || recordData.hasOwnProperty('5')) {
+            set(ref(db, `money_plus_records/${dbKey}/5`), newStatus)
+                .catch((error) => alert("เกิดข้อผิดพลาด: " + error.message));
+        } else {
+            let updatedData = {};
+            if (recordData.hasOwnProperty('status')) updatedData.status = newStatus;
+            if (recordData.hasOwnProperty('Status')) updatedData.Status = newStatus;
+            if (Object.keys(updatedData).length === 0) updatedData.status = newStatus;
+
+            update(targetRef, updatedData)
+                .catch((error) => alert("เกิดข้อผิดพลาดในการปรับสถานะบน Cloud: " + error.message));
+        }
+    }
+};
+
+window.togglePaymentMethod = function(dbKey, currentMethod) {
+    let newMethod = "-";
+    if (currentMethod === "-") newMethod = "เงินสด";
+    else if (currentMethod === "เงินสด") newMethod = "เงินโอน";
+    else newMethod = "-";
+
+    const recordData = rawDataset[dbKey];
+    if (!recordData) {
+        alert("ไม่พบข้อมูลรายการนี้บนฐานข้อมูล");
+        return;
+    }
+    
+    const targetRef = ref(db, `money_plus_records/${dbKey}`);
+    update(targetRef, { paymentMethod: newMethod })
+        .catch((error) => alert("เกิดข้อผิดพลาด: " + error.message));
+};
+
+window.handleFormSubmit = function(event) {
+    event.preventDefault();
+    const rawDate = document.getElementById('form-date').value;
+    const d = new Date(rawDate);
+    const monthsTH = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+
+    const newData = {
+        year: d.getFullYear().toString(),
+        month: monthsTH[d.getMonth()],
+        date: rawDate,
+        group: document.getElementById('form-group').value,
+        grade: document.getElementById('form-grade').value,
+        name: document.getElementById('form-name').value,
+        amount: parseInt(document.getElementById('form-amount').value),
+        status: document.querySelector('input[name="form-status"]:checked').value,
+        paymentMethod: document.getElementById('form-payment-method').value
+    };
+
+    if (window.editingRecordKey) {
+        set(ref(db, `money_plus_records/${window.editingRecordKey}`), newData)
+            .then(() => {
+                alert(`อัปเดตข้อมูลสำเร็จ!`);
+                document.getElementById('student-form').reset();
+                window.editingRecordKey = null;
+                window.updateFormDropdowns();
+                window.window.closeModal('section-form');
+            })
+            .catch((error) => alert("เกิดข้อผิดพลาดในการอัปเดต: " + error.message));
+    } else {
+        push(recordsRef, newData)
+            .then(() => {
+                alert(`🎉 ส่งข้อมูลรายรับเข้าคลาวด์สำเร็จ!`);
+                document.getElementById('student-form').reset();
+                window.updateFormDropdowns();
+                window.window.closeModal('section-form');
+            })
+            .catch((error) => alert("เกิดข้อผิดพลาด: " + error.message));
+    }
+};
+
+window.handleEditRecord = function(key) {
+    if (!rawDataset || !rawDataset[key]) return alert("ไม่พบข้อมูลที่ต้องการแก้ไข");
+    
+    let record = rawDataset[key];
+    window.editingRecordKey = key;
+    
+    // Normalize array to object if necessary
+    if (Array.isArray(record) || (record[0] !== undefined && record[1] !== undefined)) {
+        const rawName = String(record[4] || '').trim();
+        const parts = rawName.split(' ');
+        let grade = '';
+        let name = rawName;
+        if (parts.length > 1) {
+            grade = parts[0];
+            name = parts.slice(1).join(' ');
+        }
+        
+        record = {
+            amount: record[0],
+            date: record[1],
+            group: record[2],
+            month: record[3],
+            grade: grade,
+            name: name,
+            status: record[5],
+            year: record[6],
+            paymentMethod: record[7] || record.paymentMethod || '-'
+        };
+    }
+    
+    document.getElementById('form-date').value = record.date || '';
+    document.getElementById('form-group').value = record.group || '';
+    
+    const gradeSelect = document.getElementById('form-grade');
+    if (record.grade && !Array.from(gradeSelect.options).some(opt => opt.value === record.grade)) {
+        gradeSelect.innerHTML += `<option value="${record.grade}">${record.grade} (เก่า)</option>`;
+    }
+    gradeSelect.value = record.grade || '';
+    
+    window.updateFormNameDropdown();
+    
+    setTimeout(() => {
+        const nameSelect = document.getElementById('form-name');
+        if (record.name && !Array.from(nameSelect.options).some(opt => opt.value === record.name)) {
+            nameSelect.innerHTML += `<option value="${record.name}">${record.name} (เก่า)</option>`;
+        }
+        nameSelect.value = record.name || '';
+    }, 50);
+
+    document.getElementById('form-amount').value = record.amount || '';
+    const payMethodValue = record.paymentMethod || '-';
+    document.getElementById('form-payment-method').value = payMethodValue;
+    const payMethodRadio = document.querySelector(`input[name="pay-method-ui"][value="${payMethodValue}"]`);
+    if (payMethodRadio) payMethodRadio.checked = true;
+    
+    const statusRadio = document.querySelector(`input[name="form-status"][value="${record.status}"]`);
+    if (statusRadio) statusRadio.checked = true;
+
+    const btn = document.getElementById('form-submit-btn');
+    if (btn) btn.querySelector('span').innerText = 'อัปเดตข้อมูล';
+
+    window.openModal('section-form');
+};
+
+window.openNewRecordForm = function() {
+    window.editingRecordKey = null;
+    const form = document.getElementById('student-form');
+    if (form) form.reset();
+    document.getElementById('form-payment-method').value = '-';
+    
+    const btn = document.getElementById('form-submit-btn');
+    if (btn) btn.querySelector('span').innerText = 'บันทึกและส่งข้อมูลเข้าสู่ระบบ';
+    
+    window.openModal('section-form');
+};
+
+window.exportTableToCSV = function() {
+    const activeYear = document.getElementById('global-year').value;
+    const activeMonth = document.getElementById('global-month').value;
+    
+    let csvContent = "\uFEFF";
+    csvContent += "วันที่เรียน,กลุ่มเรียน,ระดับชั้น,ชื่อนักเรียน,ค่าเรียน,ช่องทาง,สถานะ\n";
+
+    if (!window.filteredItemsForExport || window.filteredItemsForExport.length === 0) {
+        alert("ไม่มีข้อมูลให้ดาวน์โหลด");
+        return;
+    }
+
+    window.filteredItemsForExport.forEach(item => {
+        csvContent += `"${item.date}","${item.group}","${item.grade}","${item.name}","${item.amount}","${item.paymentMethod}","${item.status}"\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `MoneyPlus_Export_${activeYear}_${activeMonth}.csv`);
+    document.body.appendChild(link);
+    link.click();
+        document.body.removeChild(link);
+};
+
+window.openModal = function(id) {
+    const modal = document.getElementById(id);
+    modal.classList.remove('hidden');
+    
+    // Set default date to today when opening form
+    if (id === 'section-form') {
+        const dateInput = document.getElementById('form-date');
+        if (dateInput && !dateInput.value) {
+            const today = new Date();
+            // Format to YYYY-MM-DD
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            dateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+    }
+
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        const card = modal.querySelector('.glass-card');
+        if(card) {
+            card.classList.remove('scale-95');
+            card.classList.add('scale-100');
+        }
+    }, 10);
+};
+
+window.closeModal = function(id) {
+    const modal = document.getElementById(id);
+    modal.classList.add('opacity-0');
+    const card = modal.querySelector('.glass-card');
+    if(card) {
+        card.classList.remove('scale-100');
+        card.classList.add('scale-95');
+    }
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
+};
+</script>
+
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+            .then(() => console.log("Service Worker Registered Successfully"));
+        }
+    </script>
+
+    <!-- Slip Modal -->
+    <section id="section-slip-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 opacity-0 transition-opacity duration-300">
+        <div class="flex flex-col items-center max-w-lg w-full scale-95 transition-transform duration-300 relative">
+            <button type="button" onclick="window.closeModal('section-slip-modal')" class="absolute -top-12 right-0 text-white hover:text-red-400 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-all z-10">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <!-- Slip Element to capture -->
+            <div id="invoice-slip" class="w-full bg-[#fcfcfc] rounded-2xl overflow-hidden shadow-2xl border border-gray-300" style="width: 400px; max-width: 100%;">
+                <!-- Header -->
+                <div class="bg-[#151f1d] p-6 text-center border-b-[6px] border-[#03DAC6] relative overflow-hidden">
+                    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at center, #03DAC6 1px, transparent 1px); background-size: 10px 10px;"></div>
+                    <h2 class="text-2xl font-black text-white tracking-widest relative z-10">MONEY PLUS+</h2>
+                    <p class="text-[#03DAC6] text-sm font-semibold tracking-widest mt-1 relative z-10">สลิปแจ้งยอดค้างชำระ (INVOICE)</p>
+                </div>
+                
+                <!-- Body -->
+                <div class="p-6">
+                    <div class="mb-6 flex justify-between items-end border-b border-gray-300 pb-2">
+                        <div>
+                            <p class="text-xs text-gray-500 font-bold tracking-wider mb-1">ค่าเรียนของ</p>
+                            <h3 class="text-xl font-bold text-gray-800" id="slip-student-name">ชื่อนักเรียน</h3>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-bold text-gray-500" id="slip-student-grade">ระดับชั้น</p>
+                        </div>
+                    </div>
+                    
+                    <table class="w-full text-sm mb-6">
+                        <thead>
+                            <tr class="border-b-2 border-gray-800 text-gray-800">
+                                <th class="text-center py-2 font-bold w-12">ที่</th>
+                                <th class="text-left py-2 font-bold">วันที่ / เดือน</th>
+                                <th class="text-center py-2 font-bold">สถานะ</th>
+                                <th class="text-right py-2 font-bold">ค่าเรียน</th>
+                            </tr>
+                        </thead>
+                        <tbody id="slip-table-body" class="text-gray-600 divide-y divide-gray-200">
+                            <!-- rows injected here -->
+                        </tbody>
+                    </table>
+                    
+                    <!-- Total -->
+                    <div class="flex justify-between items-end border-t-2 border-gray-800 pt-4 mt-2">
+                        <span class="text-lg font-bold text-gray-800">รวมทั้งสิ้น</span>
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-3xl font-black text-gray-900" id="slip-total-amount">0</span>
+                            <span class="text-lg font-bold text-gray-800">บาท</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <div class="bg-gray-100 p-4 text-center text-xs text-gray-500 border-t border-gray-200">
+                    <p>สร้างโดยแอปพลิเคชัน Money Plus+</p>
+                </div>
+            </div>
+            
+            <button onclick="downloadSlip()" id="btn-download-slip" class="mt-6 w-full max-w-sm bg-gradient-to-r from-[#03DAC6] to-[#01bda6] hover:from-[#01bda6] hover:to-[#03DAC6] text-[#121212] font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_15px_rgba(3,218,198,0.4)] flex justify-center items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                บันทึกเป็นรูปภาพ (Save Image)
+            </button>
+        </div>
+    </section>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#151f1d]/90 backdrop-blur-xl border-t border-white/5 pb-[env(safe-area-inset-bottom)] px-4 flex justify-between items-center h-16 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+        <button onclick="switchTab('dashboard')" id="bottom-nav-dashboard" class="flex-1 flex flex-col items-center justify-center text-[#03DAC6] transition-colors">
+            <span class="text-xl mb-0.5">📊</span>
+            <span class="text-[10px] font-medium">ภาพรวม</span>
+        </button>
+        
+        <div class="relative -top-5 flex-shrink-0 mx-2">
+            <button onclick="window.openNewRecordForm()" class="w-14 h-14 rounded-full bg-gradient-to-br from-[#03DAC6] to-[#01bda6] flex items-center justify-center text-[#121212] shadow-[0_4px_15px_rgba(3,218,198,0.5)] transform hover:scale-105 transition-transform">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+            </button>
+        </div>
+
+        <button onclick="switchTab('unpaid')" id="bottom-nav-unpaid" class="flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-white transition-colors">
+            <span class="text-xl mb-0.5">🧾</span>
+            <span class="text-[10px] font-medium">ค้างจ่าย</span>
+        </button>
+
+        <button onclick="switchTab('table')" id="bottom-nav-table" class="flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-white transition-colors">
+            <span class="text-xl mb-0.5">🗂️</span>
+            <span class="text-[10px] font-medium">ข้อมูล</span>
+        </button>
+    </nav>
+<script>
+// Overwrite switchTab to support unpaid
+window.switchTab = function(tabName) {
+    const tabs = ['dashboard', 'table', 'unpaid'];
+    
+    tabs.forEach(t => {
+        const section = document.getElementById(`section-${t}`);
+        const nav = document.getElementById(`nav-${t}`);
+        const bottomNav = document.getElementById(`bottom-nav-${t}`);
+        
+        if (section) {
+            if (t === tabName) {
+                section.classList.remove('hidden');
+                setTimeout(() => section.classList.add('fade-in'), 10);
+            } else {
+                section.classList.add('hidden');
+                section.classList.remove('fade-in');
+            }
+        }
+        
+        if (nav) {
+            if (t === tabName) {
+                nav.className = "flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 text-[#03DAC6] font-medium border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] transition-all";
+            } else {
+                nav.className = "flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white border border-transparent hover:border-white/5 transition-all";
+            }
+        }
+        
+        if (bottomNav) {
+            if (t === tabName) {
+                bottomNav.className = "flex-1 flex flex-col items-center justify-center text-[#03DAC6] transition-colors";
+            } else {
+                bottomNav.className = "flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-white transition-colors";
+            }
+        }
+    });
+    
+    let title = 'แดชบอร์ดภาพรวม';
+    if(tabName === 'table') title = 'ตารางข้อมูลทั้งหมด';
+    if(tabName === 'unpaid') title = 'สรุปยอดค้างจ่าย';
+    
+    const pageTitle = document.getElementById('page-title');
+    if(pageTitle) pageTitle.textContent = title;
+    
+    const filters = document.getElementById('header-filters');
+    if (filters) {
+        if (tabName === 'table') {
+            filters.classList.remove('hidden');
+        } else {
+            filters.classList.add('hidden');
+        }
+    }
+};
+
+window.unpaidStudentsMap = {};
+window.currentSelectedUnpaidStudent = "";
+
+const originalProcessData = window.processData;
+window.processData = function() {
+    if(originalProcessData) originalProcessData();
+    updateUnpaidSummary();
+};
+
+function updateUnpaidSummary() {
+    window.unpaidStudentsMap = {};
+    let items = [];
+    if (Array.isArray(window.rawDataset)) {
+        items = window.rawDataset.map((item, index) => item ? { ...item } : null).filter(item => item !== null);
+    } else if (window.rawDataset) {
+        items = Object.keys(window.rawDataset).map(key => ({ ...window.rawDataset[key] }));
+    }
+    
+    items.forEach(item => {
+        let itemDate = '', itemMonth = '', itemGroup = '', itemName = '', itemGrade = '', itemStatus = '', itemAmount = 0;
+        
+        if (item[0] !== undefined && item[1] !== undefined && item[2] !== undefined) {
+            itemAmount = parseInt(item[0]) || 0;
+            itemDate = String(item[1] || '').trim();
+            itemGroup = String(item[2] || '').trim();
+            itemMonth = String(item[3] || '').trim();
+            const rawName = String(item[4] || '').trim();
+            const parts = rawName.split(' ');
+            if (parts.length === 1) {
+                itemGrade = '';
+                itemName = rawName;
+            } else {
+                itemGrade = parts[0] || '';
+                itemName = parts.slice(1).join(' ');
+            }
+            itemStatus = String(item[5] || '').trim();
+        } else {
+            itemMonth = String(item.month || item.Month || '').trim();
+            itemDate = String(item.date || item.Date || '').trim();
+            itemGroup = String(item.group || item.Group || '').trim();
+            itemStatus = String(item.status || item.Status || '').trim();
+            const rawAmount = item.amount !== undefined ? item.amount : (item.Amount !== undefined ? item.Amount : 0);
+            itemAmount = parseInt(rawAmount) || 0;
+            
+            const rawName = String(item.name || item.Name || item['name '] || item['Name '] || '').trim();
+            if (item.grade && item.grade !== '') {
+                itemGrade = String(item.grade).trim();
+                itemName = rawName;
+            } else {
+                const parts = rawName.split(' ');
+                if (parts.length === 1) {
+                    itemGrade = '';
+                    itemName = rawName;
+                } else {
+                    itemGrade = parts[0] || '';
+                    itemName = parts.slice(1).join(' ');
+                }
+            }
+        }
+        
+        if (itemStatus === "ค้างจ่าย" || itemStatus === "รอตรวจสอบ") {
+            if (!window.unpaidStudentsMap[itemName]) {
+                window.unpaidStudentsMap[itemName] = { grade: itemGrade, total: 0, records: [] };
+            }
+            window.unpaidStudentsMap[itemName].records.push({
+                date: itemDate,
+                month: itemMonth,
+                amount: itemAmount,
+                status: itemStatus
+            });
+            window.unpaidStudentsMap[itemName].total += itemAmount;
+        }
+    });
+    
+    const select = document.getElementById('unpaid-student-select');
+    if (select) {
+        const prevSelected = select.value;
+        let htmlOption = '<option value="" class="bg-[#121212]">-- กรุณาเลือกนักเรียน --</option>';
+        Object.keys(window.unpaidStudentsMap).sort().forEach(name => {
+            const stu = window.unpaidStudentsMap[name];
+            const displayGrade = stu.grade ? stu.grade + ' ' : '';
+            htmlOption += `<option value="${name}" class="bg-[#121212]">${displayGrade}${name} (ค้าง ฿${stu.total.toLocaleString()})</option>`;
+        });
+        select.innerHTML = htmlOption;
+        
+        if (window.unpaidStudentsMap[prevSelected]) {
+            select.value = prevSelected;
+            renderUnpaidPreview(prevSelected);
+        } else {
+            select.value = "";
+            renderUnpaidPreview("");
+        }
+    }
+}
+
+window.renderUnpaidPreview = function(studentName) {
+    window.currentSelectedUnpaidStudent = studentName;
+    const container = document.getElementById('unpaid-preview-container');
+    const emptyState = document.getElementById('unpaid-empty-state');
+    
+    if (!studentName || !window.unpaidStudentsMap[studentName]) {
+        container.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+    }
+    
+    container.classList.remove('hidden');
+    emptyState.classList.add('hidden');
+    
+    const stu = window.unpaidStudentsMap[studentName];
+    document.getElementById('unpaid-preview-name').textContent = studentName;
+    document.getElementById('unpaid-preview-grade').textContent = stu.grade || 'ไม่ระบุชั้นเรียน';
+    document.getElementById('unpaid-preview-total').textContent = `฿${stu.total.toLocaleString()}`;
+    
+    let listHtml = '';
+    stu.records.forEach((rec, idx) => {
+        const isPending = rec.status === 'ค้างจ่าย';
+        const statusColor = isPending ? 'text-red-400' : 'text-orange-400';
+        listHtml += `
+            <div class="flex justify-between items-center bg-[#151f1d] p-3 rounded-xl border border-white/5">
+                <div>
+                    <p class="text-sm font-medium text-white">${rec.date} ${rec.month}</p>
+                    <p class="text-xs ${statusColor}">${rec.status}</p>
+                </div>
+                <p class="text-sm font-bold text-white">฿${rec.amount.toLocaleString()}</p>
+            </div>
+        `;
+    });
+    document.getElementById('unpaid-preview-list').innerHTML = listHtml;
+};
+
+window.openSlipModal = function() {
+    const studentName = window.currentSelectedUnpaidStudent;
+    if (!studentName || !window.unpaidStudentsMap[studentName]) return;
+    
+    const stu = window.unpaidStudentsMap[studentName];
+    document.getElementById('slip-student-name').textContent = studentName;
+    document.getElementById('slip-student-grade').textContent = stu.grade || '';
+    document.getElementById('slip-total-amount').textContent = stu.total.toLocaleString();
+    
+    let listHtml = '';
+    stu.records.forEach((rec, idx) => {
+        const isPending = rec.status === 'ค้างจ่าย';
+        const statusColor = isPending ? 'text-red-500 font-bold' : 'text-orange-500 font-bold';
+        listHtml += `
+            <tr class="border-b border-gray-100 last:border-0">
+                <td class="text-center py-2 text-gray-500">${idx + 1}</td>
+                <td class="text-left py-2 font-medium text-gray-800">${rec.date} ${rec.month}</td>
+                <td class="text-center py-2 ${statusColor}">${rec.status}</td>
+                <td class="text-right py-2 font-bold text-gray-800">฿${rec.amount.toLocaleString()}</td>
+            </tr>
+        `;
+    });
+    document.getElementById('slip-table-body').innerHTML = listHtml;
+    
+    const btn = document.getElementById('btn-download-slip');
+    btn.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> บันทึกเป็นรูปภาพ (Save Image)`;
+    btn.disabled = false;
+    
+    window.openModal('section-slip-modal');
+};
+
+window.downloadSlip = function() {
+    const slipEl = document.getElementById('invoice-slip');
+    const btn = document.getElementById('btn-download-slip');
+    const studentName = window.currentSelectedUnpaidStudent;
+    
+    btn.innerHTML = `<svg class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> กำลังบันทึก...`;
+    btn.disabled = true;
+    
+    html2canvas(slipEl, {
+        scale: 2, 
+        backgroundColor: "#fcfcfc",
+        logging: false,
+        useCORS: true
+    }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `Invoice_${studentName}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        
+        btn.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> บันทึกสำเร็จแล้ว`;
+        setTimeout(() => {
+            btn.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> บันทึกเป็นรูปภาพ (Save Image)`;
+            btn.disabled = false;
+        }, 3000);
+    }).catch(err => {
+        console.error(err);
+        btn.innerHTML = 'เกิดข้อผิดพลาด';
+        btn.disabled = false;
+    });
+};
+</script>
+</body>
+</html>
+
+
