@@ -1776,13 +1776,10 @@ window.openSlipModal = function() {
     
     let listHtml = '';
     stu.records.forEach((rec, idx) => {
-        const isPending = rec.status === 'ค้างจ่าย';
-        const statusColor = isPending ? 'text-red-500 font-bold' : 'text-orange-500 font-bold';
         listHtml += `
             <tr class="border-b border-gray-100 last:border-0">
-                <td class="text-center py-2 text-gray-500">${idx + 1}</td>
+                <td class="text-center py-2 font-medium text-gray-800">${idx + 1}</td>
                 <td class="text-left py-2 font-medium text-gray-800">${rec.date} ${rec.month} ${shortYear}</td>
-                <td class="text-center py-2 ${statusColor}">${rec.status}</td>
                 <td class="text-right py-2 font-bold text-gray-800">฿${rec.amount.toLocaleString()}</td>
             </tr>
         `;
@@ -1857,11 +1854,11 @@ window.downloadSlip = function() {
                 <div class="p-6">
                     <div class="mb-6 flex justify-between items-end border-b border-gray-300 pb-2">
                         <div class="flex items-baseline gap-2 pb-1">
-                            <p class="text-xs text-gray-500 font-bold tracking-wider">ค่าเรียนของ</p>
+                            <p class="text-xs text-gray-800 font-bold tracking-wider">ค่าเรียนของ</p>
                             <h3 class="text-xl font-bold text-gray-800" id="slip-student-name">ชื่อนักเรียน</h3>
                         </div>
                         <div class="text-right pb-1">
-                            <p class="text-xs text-gray-500 font-bold tracking-wider">ข้อมูลวันที่</p>
+                            <p class="text-xs text-gray-800 font-bold tracking-wider">ข้อมูลวันที่</p>
                             <p class="text-sm font-bold text-gray-800 mt-0.5" id="slip-current-date">01 ม.ค. 2567</p>
                         </div>
                     </div>
@@ -1871,11 +1868,10 @@ window.downloadSlip = function() {
                             <tr class="border-b-2 border-gray-800 text-gray-800">
                                 <th class="text-center py-2 font-bold w-12">ที่</th>
                                 <th class="text-left py-2 font-bold">วันที่ / เดือน</th>
-                                <th class="text-center py-2 font-bold">สถานะ</th>
                                 <th class="text-right py-2 font-bold">ค่าเรียน</th>
                             </tr>
                         </thead>
-                        <tbody id="slip-table-body" class="text-gray-600 divide-y divide-gray-200">
+                        <tbody id="slip-table-body" class="text-gray-800 divide-y divide-gray-200">
                             <!-- rows injected here -->
                         </tbody>
                     </table>
