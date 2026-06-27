@@ -1,9 +1,10 @@
-const CACHE_NAME = 'money-plus-v2-cache-v2';
+const CACHE_NAME = 'money-plus-v2-cache-v3';
 const urlsToCache = [
   './index.html',
   './app.js',
   './processData.js',
   './manifest.json',
+  './icon-512.png',
   'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4',
   'https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap'
 ];

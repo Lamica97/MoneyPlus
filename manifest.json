@@ -1,0 +1,18 @@
+{
+  "name": "Money Plus+ Dashboard",
+  "short_name": "Money Plus",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#151f1d",
+  "description": "ระบบบริการจัดการรายรับผ่านคลาวด์จากทุกอุปกรณ์",
+  "icons": [
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "orientation": "portrait-primary"
+}

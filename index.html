@@ -252,9 +252,7 @@
                     </div>
                 </div>
             </section>
-        </div>
-    </main>
-
+            
             <section id="section-unpaid" class="hidden space-y-4">
                 <div class="glass-card p-4 sm:p-6 rounded-2xl border border-white/5 relative overflow-hidden">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -302,6 +300,8 @@
                     </div>
                 </div>
             </section>
+        </div>
+    </main>
 
             <section id="section-form" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
                 <div class="glass-card p-4 sm:p-6 rounded-2xl border-t-4 border-[#03DAC6] max-w-2xl w-full max-h-[90vh] overflow-y-auto relative scale-95 transition-transform duration-300 shadow-2xl">
@@ -1553,105 +1553,8 @@ window.closeModal = function(id) {
         modal.classList.add('hidden');
     }, 300);
 };
-</script>
 
-
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js')
-            .then(() => console.log("Service Worker Registered Successfully"));
-        }
-    </script>
-
-    <!-- Slip Modal -->
-    <section id="section-slip-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 opacity-0 transition-opacity duration-300">
-        <div class="flex flex-col items-center max-w-lg w-full scale-95 transition-transform duration-300 relative">
-            <button type="button" onclick="window.closeModal('section-slip-modal')" class="absolute -top-12 right-0 text-white hover:text-red-400 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-all z-10">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            
-            <!-- Slip Element to capture -->
-            <div id="invoice-slip" class="w-full bg-[#fcfcfc] rounded-2xl overflow-hidden shadow-2xl border border-gray-300" style="width: 400px; max-width: 100%;">
-                <!-- Header -->
-                <div class="bg-[#151f1d] p-6 text-center border-b-[6px] border-[#03DAC6] relative overflow-hidden">
-                    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at center, #03DAC6 1px, transparent 1px); background-size: 10px 10px;"></div>
-                    <h2 class="text-2xl font-black text-white tracking-widest relative z-10">MONEY PLUS+</h2>
-                    <p class="text-[#03DAC6] text-sm font-semibold tracking-widest mt-1 relative z-10">สลิปแจ้งยอดค้างชำระ (INVOICE)</p>
-                </div>
-                
-                <!-- Body -->
-                <div class="p-6">
-                    <div class="mb-6 flex justify-between items-end border-b border-gray-300 pb-2">
-                        <div>
-                            <p class="text-xs text-gray-500 font-bold tracking-wider mb-1">ค่าเรียนของ</p>
-                            <h3 class="text-xl font-bold text-gray-800" id="slip-student-name">ชื่อนักเรียน</h3>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-sm font-bold text-gray-500" id="slip-student-grade">ระดับชั้น</p>
-                        </div>
-                    </div>
-                    
-                    <table class="w-full text-sm mb-6">
-                        <thead>
-                            <tr class="border-b-2 border-gray-800 text-gray-800">
-                                <th class="text-center py-2 font-bold w-12">ที่</th>
-                                <th class="text-left py-2 font-bold">วันที่ / เดือน</th>
-                                <th class="text-center py-2 font-bold">สถานะ</th>
-                                <th class="text-right py-2 font-bold">ค่าเรียน</th>
-                            </tr>
-                        </thead>
-                        <tbody id="slip-table-body" class="text-gray-600 divide-y divide-gray-200">
-                            <!-- rows injected here -->
-                        </tbody>
-                    </table>
-                    
-                    <!-- Total -->
-                    <div class="flex justify-between items-end border-t-2 border-gray-800 pt-4 mt-2">
-                        <span class="text-lg font-bold text-gray-800">รวมทั้งสิ้น</span>
-                        <div class="flex items-baseline gap-2">
-                            <span class="text-3xl font-black text-gray-900" id="slip-total-amount">0</span>
-                            <span class="text-lg font-bold text-gray-800">บาท</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Footer -->
-                <div class="bg-gray-100 p-4 text-center text-xs text-gray-500 border-t border-gray-200">
-                    <p>สร้างโดยแอปพลิเคชัน Money Plus+</p>
-                </div>
-            </div>
-            
-            <button onclick="downloadSlip()" id="btn-download-slip" class="mt-6 w-full max-w-sm bg-gradient-to-r from-[#03DAC6] to-[#01bda6] hover:from-[#01bda6] hover:to-[#03DAC6] text-[#121212] font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_15px_rgba(3,218,198,0.4)] flex justify-center items-center gap-2">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                บันทึกเป็นรูปภาพ (Save Image)
-            </button>
-        </div>
-    </section>
-
-    <!-- Mobile Bottom Navigation -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#151f1d]/90 backdrop-blur-xl border-t border-white/5 pb-[env(safe-area-inset-bottom)] px-4 flex justify-between items-center h-16 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
-        <button onclick="switchTab('dashboard')" id="bottom-nav-dashboard" class="flex-1 flex flex-col items-center justify-center text-[#03DAC6] transition-colors">
-            <span class="text-xl mb-0.5">📊</span>
-            <span class="text-[10px] font-medium">ภาพรวม</span>
-        </button>
-        
-        <div class="relative -top-5 flex-shrink-0 mx-2">
-            <button onclick="window.openNewRecordForm()" class="w-14 h-14 rounded-full bg-gradient-to-br from-[#03DAC6] to-[#01bda6] flex items-center justify-center text-[#121212] shadow-[0_4px_15px_rgba(3,218,198,0.5)] transform hover:scale-105 transition-transform">
-                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-            </button>
-        </div>
-
-        <button onclick="switchTab('unpaid')" id="bottom-nav-unpaid" class="flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-white transition-colors">
-            <span class="text-xl mb-0.5">🧾</span>
-            <span class="text-[10px] font-medium">ค้างจ่าย</span>
-        </button>
-
-        <button onclick="switchTab('table')" id="bottom-nav-table" class="flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-white transition-colors">
-            <span class="text-xl mb-0.5">🗂️</span>
-            <span class="text-[10px] font-medium">ข้อมูล</span>
-        </button>
-    </nav>
-<script>
+// --- Injected Unpaid Summary Logic ---
 // Overwrite switchTab to support unpaid
 window.switchTab = function(tabName) {
     const tabs = ['dashboard', 'table', 'unpaid'];
@@ -1718,9 +1621,19 @@ function updateUnpaidSummary() {
     window.unpaidStudentsMap = {};
     let items = [];
     if (Array.isArray(window.rawDataset)) {
-        items = window.rawDataset.map((item, index) => item ? { ...item } : null).filter(item => item !== null);
+        items = window.rawDataset.map(item => item ? { ...item } : null).filter(item => item !== null);
     } else if (window.rawDataset) {
         items = Object.keys(window.rawDataset).map(key => ({ ...window.rawDataset[key] }));
+    }
+    
+    // Inject Mock Data if no data found (e.g. running locally via file://)
+    if (items.length === 0) {
+        items = [
+            { date: "01", month: "มิถุนายน", group: "วันอังคาร", status: "ค้างจ่าย", amount: 1500, name: "ม.1 น้องเอ" },
+            { date: "08", month: "มิถุนายน", group: "วันอังคาร", status: "ค้างจ่าย", amount: 1500, name: "ม.1 น้องเอ" },
+            { date: "02", month: "มิถุนายน", group: "วันพุธ", status: "รอตรวจสอบ", amount: 2000, name: "ม.3 น้องบี" },
+            { date: "15", month: "มิถุนายน", group: "วันเสาร์", status: "ค้างจ่าย", amount: 800, name: "ป.5 น้องซี" }
+        ];
     }
     
     items.forEach(item => {
@@ -1816,6 +1729,10 @@ window.renderUnpaidPreview = function(studentName) {
     
     const stu = window.unpaidStudentsMap[studentName];
     document.getElementById('unpaid-preview-name').textContent = studentName;
+    
+    const now = new Date();
+    const shortYear = (now.getFullYear() + 543).toString().slice(-2);
+    
     document.getElementById('unpaid-preview-grade').textContent = stu.grade || 'ไม่ระบุชั้นเรียน';
     document.getElementById('unpaid-preview-total').textContent = `฿${stu.total.toLocaleString()}`;
     
@@ -1826,7 +1743,7 @@ window.renderUnpaidPreview = function(studentName) {
         listHtml += `
             <div class="flex justify-between items-center bg-[#151f1d] p-3 rounded-xl border border-white/5">
                 <div>
-                    <p class="text-sm font-medium text-white">${rec.date} ${rec.month}</p>
+                    <p class="text-sm font-medium text-white">${rec.date} ${rec.month} ${shortYear}</p>
                     <p class="text-xs ${statusColor}">${rec.status}</p>
                 </div>
                 <p class="text-sm font-bold text-white">฿${rec.amount.toLocaleString()}</p>
@@ -1842,7 +1759,14 @@ window.openSlipModal = function() {
     
     const stu = window.unpaidStudentsMap[studentName];
     document.getElementById('slip-student-name').textContent = studentName;
-    document.getElementById('slip-student-grade').textContent = stu.grade || '';
+    
+    const now = new Date();
+    const shortYear = (now.getFullYear() + 543).toString().slice(-2);
+    
+    const thaiMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+    const dateStr = `${now.getDate()} ${thaiMonths[now.getMonth()]} ${now.getFullYear() + 543}`;
+    document.getElementById('slip-current-date').textContent = dateStr;
+    
     document.getElementById('slip-total-amount').textContent = stu.total.toLocaleString();
     
     let listHtml = '';
@@ -1852,7 +1776,7 @@ window.openSlipModal = function() {
         listHtml += `
             <tr class="border-b border-gray-100 last:border-0">
                 <td class="text-center py-2 text-gray-500">${idx + 1}</td>
-                <td class="text-left py-2 font-medium text-gray-800">${rec.date} ${rec.month}</td>
+                <td class="text-left py-2 font-medium text-gray-800">${rec.date} ${rec.month} ${shortYear}</td>
                 <td class="text-center py-2 ${statusColor}">${rec.status}</td>
                 <td class="text-right py-2 font-bold text-gray-800">฿${rec.amount.toLocaleString()}</td>
             </tr>
@@ -1898,6 +1822,103 @@ window.downloadSlip = function() {
     });
 };
 </script>
+
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+            .then(() => console.log("Service Worker Registered Successfully"));
+        }
+    </script>
+
+    <!-- Slip Modal -->
+    <section id="section-slip-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 opacity-0 transition-opacity duration-300">
+        <div class="flex flex-col items-center max-w-lg w-full scale-95 transition-transform duration-300 relative">
+            <button type="button" onclick="window.closeModal('section-slip-modal')" class="absolute -top-12 right-0 text-white hover:text-red-400 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-all z-10">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <!-- Slip Element to capture -->
+            <div id="invoice-slip" class="w-full bg-[#fcfcfc] rounded-2xl overflow-hidden shadow-2xl border border-gray-300" style="width: 400px; max-width: 100%;">
+                <!-- Header -->
+                <div class="bg-[#151f1d] p-6 text-center border-b-[6px] border-[#03DAC6] relative overflow-hidden">
+                    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at center, #03DAC6 1px, transparent 1px); background-size: 10px 10px;"></div>
+                    <h2 class="text-2xl font-black text-[#03DAC6] tracking-widest relative z-10 mt-2">สลิปแจ้งยอดค่าเรียนพิเศษ</h2>
+                </div>
+                
+                <!-- Body -->
+                <div class="p-6">
+                    <div class="mb-6 flex justify-between items-end border-b border-gray-300 pb-2">
+                        <div class="flex items-baseline gap-2 pb-1">
+                            <p class="text-xs text-gray-500 font-bold tracking-wider">ค่าเรียนของ</p>
+                            <h3 class="text-xl font-bold text-gray-800" id="slip-student-name">ชื่อนักเรียน</h3>
+                        </div>
+                        <div class="text-right pb-1">
+                            <p class="text-xs text-gray-500 font-bold tracking-wider">ข้อมูลวันที่</p>
+                            <p class="text-sm font-bold text-gray-800 mt-0.5" id="slip-current-date">01 ม.ค. 2567</p>
+                        </div>
+                    </div>
+                    
+                    <table class="w-full text-sm mb-6">
+                        <thead>
+                            <tr class="border-b-2 border-gray-800 text-gray-800">
+                                <th class="text-center py-2 font-bold w-12">ที่</th>
+                                <th class="text-left py-2 font-bold">วันที่ / เดือน</th>
+                                <th class="text-center py-2 font-bold">สถานะ</th>
+                                <th class="text-right py-2 font-bold">ค่าเรียน</th>
+                            </tr>
+                        </thead>
+                        <tbody id="slip-table-body" class="text-gray-600 divide-y divide-gray-200">
+                            <!-- rows injected here -->
+                        </tbody>
+                    </table>
+                    
+                    <!-- Total -->
+                    <div class="flex justify-between items-end border-t-2 border-gray-800 pt-4 mt-2">
+                        <span class="text-lg font-bold text-gray-800">รวมทั้งสิ้น</span>
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-3xl font-black text-gray-900" id="slip-total-amount">0</span>
+                            <span class="text-lg font-bold text-gray-800">บาท</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <div class="bg-gray-100 p-4 text-center text-xs text-gray-500 border-t border-gray-200">
+                    <p>สร้างโดยแอปพลิเคชัน Money Plus+</p>
+                </div>
+            </div>
+            
+            <button onclick="downloadSlip()" id="btn-download-slip" class="mt-6 w-full max-w-sm bg-gradient-to-r from-[#03DAC6] to-[#01bda6] hover:from-[#01bda6] hover:to-[#03DAC6] text-[#121212] font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_15px_rgba(3,218,198,0.4)] flex justify-center items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                บันทึกเป็นรูปภาพ (Save Image)
+            </button>
+        </div>
+    </section>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#151f1d]/90 backdrop-blur-xl border-t border-white/5 pb-[env(safe-area-inset-bottom)] px-4 flex justify-between items-center h-16 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+        <button onclick="switchTab('dashboard')" id="bottom-nav-dashboard" class="flex-1 flex flex-col items-center justify-center text-[#03DAC6] transition-colors">
+            <span class="text-xl mb-0.5">📊</span>
+            <span class="text-[10px] font-medium">ภาพรวม</span>
+        </button>
+        
+        <div class="relative -top-5 flex-shrink-0 mx-2">
+            <button onclick="window.openNewRecordForm()" class="w-14 h-14 rounded-full bg-gradient-to-br from-[#03DAC6] to-[#01bda6] flex items-center justify-center text-[#121212] shadow-[0_4px_15px_rgba(3,218,198,0.5)] transform hover:scale-105 transition-transform">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+            </button>
+        </div>
+
+        <button onclick="switchTab('unpaid')" id="bottom-nav-unpaid" class="flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-white transition-colors">
+            <span class="text-xl mb-0.5">🧾</span>
+            <span class="text-[10px] font-medium">ค้างจ่าย</span>
+        </button>
+
+        <button onclick="switchTab('table')" id="bottom-nav-table" class="flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-white transition-colors">
+            <span class="text-xl mb-0.5">🗂️</span>
+            <span class="text-[10px] font-medium">ข้อมูล</span>
+        </button>
+    </nav>
 </body>
 </html>
 
